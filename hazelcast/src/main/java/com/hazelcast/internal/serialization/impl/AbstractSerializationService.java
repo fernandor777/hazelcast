@@ -16,6 +16,7 @@
 
 package com.hazelcast.internal.serialization.impl;
 
+import com.hazelcast.config.ClassFilter;
 import com.hazelcast.config.CompactSerializationConfig;
 import com.hazelcast.core.ManagedContext;
 import com.hazelcast.internal.compatibility.serialization.impl.CompatibilitySerializationConstants;
@@ -48,6 +49,7 @@ import com.hazelcast.nio.serialization.Portable;
 import com.hazelcast.nio.serialization.Serializer;
 import com.hazelcast.partition.PartitioningStrategy;
 
+import javax.annotation.Nullable;
 import java.io.Externalizable;
 import java.io.Serializable;
 import java.nio.ByteOrder;
@@ -126,7 +128,8 @@ public abstract class AbstractSerializationService implements InternalSerializat
         CompactSerializationConfig compactSerializationCfg = builder.compactSerializationConfig == null
                 ? new CompactSerializationConfig() : builder.compactSerializationConfig;
         compactStreamSerializer = new CompactStreamSerializer(this, compactSerializationCfg,
-                managedContext, builder.schemaService, classLoader);
+                managedContext, builder.schemaService, classLoader, builder.reflectiveCompactSerializationBlockList,
+                builder.reflectiveCompactSerializationAllowList);
         this.compactWithSchemaSerializerAdapter = new CompactWithSchemaStreamSerializerAdapter(compactStreamSerializer);
         this.compactSerializerAdapter = new CompactStreamSerializerAdapter(compactStreamSerializer);
     }
@@ -738,6 +741,8 @@ public abstract class AbstractSerializationService implements InternalSerializat
         private boolean allowOverrideDefaultSerializers;
         private CompactSerializationConfig compactSerializationConfig;
         private SchemaService schemaService;
+        private ClassFilter reflectiveCompactSerializationBlockList;
+        private ClassFilter reflectiveCompactSerializationAllowList;
 
         protected Builder() {
         }
@@ -825,6 +830,15 @@ public abstract class AbstractSerializationService implements InternalSerializat
             this.schemaService = schemaService;
             return self();
         }
-    }
 
+        public final T withReflectiveCompactSerializationBlocklist(@Nullable ClassFilter blockList) {
+            this.reflectiveCompactSerializationBlockList = blockList;
+            return self();
+        }
+
+        public final T withReflectiveCompactSerializationAllowlist(@Nullable ClassFilter allowList) {
+            this.reflectiveCompactSerializationAllowList = allowList;
+            return self();
+        }
+    }
 }
