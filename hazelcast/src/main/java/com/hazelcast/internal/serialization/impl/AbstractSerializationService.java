@@ -48,6 +48,7 @@ import com.hazelcast.nio.serialization.HazelcastSerializationException;
 import com.hazelcast.nio.serialization.Portable;
 import com.hazelcast.nio.serialization.Serializer;
 import com.hazelcast.partition.PartitioningStrategy;
+import com.hazelcast.spi.properties.HazelcastProperties;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -107,6 +108,7 @@ public abstract class AbstractSerializationService implements InternalSerializat
     private final ILogger logger = Logger.getLogger(InternalSerializationService.class);
     private boolean isCompatibility;
     private final boolean allowOverrideDefaultSerializers;
+    private final HazelcastProperties hazelcastProperties;
 
     AbstractSerializationService(Builder<?> builder) {
         this.inputOutputFactory = builder.inputOutputFactory;
@@ -134,6 +136,7 @@ public abstract class AbstractSerializationService implements InternalSerializat
                 builder.reflectiveCompactSerializationRestrictionsWithPropertyFilters());
         this.compactWithSchemaSerializerAdapter = new CompactWithSchemaStreamSerializerAdapter(compactStreamSerializer);
         this.compactSerializerAdapter = new CompactStreamSerializerAdapter(compactStreamSerializer);
+        this.hazelcastProperties = builder.hazelcastProperties;
     }
 
     // used by jet
@@ -154,6 +157,7 @@ public abstract class AbstractSerializationService implements InternalSerializat
         this.compactStreamSerializer = prototype.compactStreamSerializer;
         this.compactWithSchemaSerializerAdapter = prototype.compactWithSchemaSerializerAdapter;
         this.compactSerializerAdapter = prototype.compactSerializerAdapter;
+        this.hazelcastProperties = prototype.hazelcastProperties;
     }
 
     //region Serialization Service
@@ -442,6 +446,12 @@ public abstract class AbstractSerializationService implements InternalSerializat
         return version;
     }
 
+    @Override
+    public HazelcastProperties getHazelcastProperties() {
+        return hazelcastProperties;
+    }
+
+    @Override
     public void dispose() {
         active = false;
         for (SerializerAdapter serializer : typeMap.values()) {
@@ -747,6 +757,7 @@ public abstract class AbstractSerializationService implements InternalSerializat
         private ClassFilter reflectiveCompactSerializationAllowList;
         private ExtraReflectiveCompactSerializationRestrictions reflectiveCompactSerializationRestrictions
                 = ExtraReflectiveCompactSerializationRestrictions.NO_RESTRICTIONS;
+        private HazelcastProperties hazelcastProperties;
 
         protected Builder() {
         }
@@ -864,6 +875,11 @@ public abstract class AbstractSerializationService implements InternalSerializat
                 return second == null ? null : new ClassFilter(second);
             }
             return second == null ? new ClassFilter(first) : new ClassFilter(first).add(second);
+        }
+
+        public final T withProperties(HazelcastProperties properties) {
+            this.hazelcastProperties = properties;
+            return self();
         }
     }
 }

@@ -29,6 +29,7 @@ import com.hazelcast.query.Predicates;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 import static java.util.Arrays.asList;
@@ -187,6 +188,10 @@ public abstract class AbstractExtractionTest extends AbstractExtractionSpecifica
      * </code>
      */
     protected void execute(Input input, Query query, Expected expected) {
+        execute(input, query, expected, false);
+    }
+
+    protected void execute(Input input, Query query, Expected expected, boolean enforceExceptionsThrown) {
         // GIVEN
         setup(query);
 
@@ -215,6 +220,11 @@ public abstract class AbstractExtractionTest extends AbstractExtractionSpecifica
             if (expected.objects.length > 0) {
                 translate(expected.objects);
                 assertThat(values).containsExactlyInAnyOrderElementsOf(asList(expected.objects));
+            }
+        } else {
+            // no exception thrown when it was expected
+            if (enforceExceptionsThrown) {
+                fail("Expected exception(s) " + Arrays.toString(expected.throwables));
             }
         }
     }
