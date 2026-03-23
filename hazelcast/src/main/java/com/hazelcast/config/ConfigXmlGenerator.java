@@ -528,13 +528,7 @@ public class ConfigXmlGenerator {
         }
         gen.node("check-class-def-errors", c.isCheckClassDefErrors());
         JavaSerializationFilterConfig javaSerializationFilterConfig = c.getJavaSerializationFilterConfig();
-        if (javaSerializationFilterConfig != null) {
-            gen.open("java-serialization-filter", "defaults-disabled", javaSerializationFilterConfig.isDefaultsDisabled());
-            appendFilterList(gen, "blacklist", javaSerializationFilterConfig.getBlacklist());
-            appendFilterList(gen, "whitelist", javaSerializationFilterConfig.getWhitelist());
-            gen.close();
-        }
-
+        ConfigXmlGeneratorHelper.appendClassFilter(gen, "java-serialization-filter", javaSerializationFilterConfig);
         ConfigXmlGeneratorHelper.compactSerialization(gen, c.getCompactSerializationConfig());
 
         // close serialization
@@ -1072,12 +1066,7 @@ public class ConfigXmlGenerator {
         gen.open("sql")
                 .node("statement-timeout-millis", sqlConfig.getStatementTimeoutMillis())
                 .node("catalog-persistence-enabled", sqlConfig.isCatalogPersistenceEnabled());
-        if (filterConfig != null) {
-            gen.open("java-reflection-filter", "defaults-disabled", filterConfig.isDefaultsDisabled());
-            appendFilterList(gen, "blacklist", filterConfig.getBlacklist());
-            appendFilterList(gen, "whitelist", filterConfig.getWhitelist());
-            gen.close();
-        }
+        ConfigXmlGeneratorHelper.appendClassFilter(gen, "java-reflection-filter", filterConfig);
         gen.close();
     }
 
@@ -1223,23 +1212,6 @@ public class ConfigXmlGenerator {
         }
     }
 
-    private static void appendFilterList(XmlGenerator gen, String listName, ClassFilter classFilterList) {
-        if (classFilterList.isEmpty()) {
-            return;
-        }
-        gen.open(listName);
-        for (String className : classFilterList.getClasses()) {
-            gen.node("class", className);
-        }
-        for (String packageName : classFilterList.getPackages()) {
-            gen.node("package", packageName);
-        }
-        for (String prefix : classFilterList.getPrefixes()) {
-            gen.node("prefix", prefix);
-        }
-        gen.close();
-    }
-
     private static void integrityCheckerXmlGenerator(final XmlGenerator gen, final Config config) {
         gen.node(
                 "integrity-checker",
@@ -1277,13 +1249,7 @@ public class ConfigXmlGenerator {
         }
         gen.open("user-code-namespaces", "enabled", userCodeNamespacesConfig.isEnabled());
         JavaSerializationFilterConfig filterConfig = userCodeNamespacesConfig.getClassFilterConfig();
-        if (filterConfig != null) {
-            gen.open("class-filter", "defaults-disabled", filterConfig.isDefaultsDisabled());
-            appendFilterList(gen, "blacklist", filterConfig.getBlacklist());
-            appendFilterList(gen, "whitelist", filterConfig.getWhitelist());
-            gen.close();
-        }
-
+        ConfigXmlGeneratorHelper.appendClassFilter(gen, "class-filter", filterConfig);
         namespaceConfigurations(gen, config);
         gen.close();
     }

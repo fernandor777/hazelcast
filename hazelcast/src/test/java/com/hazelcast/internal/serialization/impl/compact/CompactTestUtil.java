@@ -17,12 +17,14 @@
 package com.hazelcast.internal.serialization.impl.compact;
 
 import com.hazelcast.config.CompactSerializationConfig;
+import com.hazelcast.config.JavaSerializationFilterConfig;
 import com.hazelcast.config.SerializationConfig;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.internal.serialization.Data;
 import com.hazelcast.internal.serialization.InternalSerializationService;
 import com.hazelcast.internal.serialization.SerializationService;
 import com.hazelcast.internal.serialization.impl.DefaultSerializationServiceBuilder;
+import com.hazelcast.internal.serialization.impl.ExtraReflectiveCompactSerializationRestrictions;
 import com.hazelcast.nio.serialization.compact.CompactSerializer;
 import com.hazelcast.nio.serialization.genericrecord.GenericRecord;
 import com.hazelcast.nio.serialization.genericrecord.GenericRecordBuilder;
@@ -34,6 +36,7 @@ import example.serialization.MainDTO;
 import example.serialization.NamedDTO;
 import example.serialization.AllFieldsDTO;
 import example.serialization.SerializableEmployeeDTO;
+import org.assertj.core.api.Assertions;
 
 import javax.annotation.Nonnull;
 import java.math.BigDecimal;
@@ -363,5 +366,9 @@ public final class CompactTestUtil {
             schemas.add(writer.build());
         }
         return schemas;
+    }
+
+    public static void assertZeroConfigFilter(SerializationConfig actual, JavaSerializationFilterConfig expected) {
+        Assertions.assertThat(actual.getCompactSerializationConfig().getZeroConfigFilter()).isEqualTo(expected);
     }
 }
