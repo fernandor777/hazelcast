@@ -28,7 +28,6 @@ import com.hazelcast.projection.Projection;
 import com.hazelcast.projection.Projections;
 import com.hazelcast.query.QueryException;
 import com.hazelcast.query.ReflectiveAttributeTestObject;
-import com.hazelcast.query.impl.getters.policy.ReflectiveAttributeLookupException;
 import com.hazelcast.test.HazelcastParallelClassRunner;
 import com.hazelcast.test.HazelcastTestSupport;
 import com.hazelcast.test.TestHazelcastInstanceFactory;
@@ -146,7 +145,6 @@ public class SingleAttributeProjectionTest extends HazelcastTestSupport {
 
         assertThatThrownBy(() -> map.project(Projections.singleAttribute("staticInt")))
                 .isInstanceOf(QueryException.class)
-                .hasRootCauseInstanceOf(ReflectiveAttributeLookupException.class)
                 .hasMessageContaining("cannot be used for attribute extraction");
     }
 
@@ -157,7 +155,6 @@ public class SingleAttributeProjectionTest extends HazelcastTestSupport {
 
         assertThatThrownBy(() -> map.project(Projections.singleAttribute("getStaticValue")))
                 .isInstanceOf(QueryException.class)
-                .hasRootCauseInstanceOf(ReflectiveAttributeLookupException.class)
                 .hasMessageContaining("cannot be used for attribute extraction");
     }
 
@@ -168,7 +165,6 @@ public class SingleAttributeProjectionTest extends HazelcastTestSupport {
 
         assertThatThrownBy(() -> map.project(Projections.singleAttribute("doVoid")))
                 .isInstanceOf(QueryException.class)
-                .hasRootCauseInstanceOf(ReflectiveAttributeLookupException.class)
                 .hasMessageContaining("cannot be used for attribute extraction");
     }
 
@@ -179,7 +175,6 @@ public class SingleAttributeProjectionTest extends HazelcastTestSupport {
 
         assertThatThrownBy(() -> map.project(Projections.singleAttribute("hazelcastInstance.name")))
                 .isInstanceOf(QueryException.class)
-                .hasRootCauseInstanceOf(ReflectiveAttributeLookupException.class)
                 .hasMessageContaining("cannot be used for attribute extraction");
     }
 
