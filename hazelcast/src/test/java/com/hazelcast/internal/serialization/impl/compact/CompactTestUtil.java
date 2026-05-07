@@ -352,8 +352,9 @@ public final class CompactTestUtil {
      * reflective serializer.
      */
     public static Collection<Schema> getSchemasFor(Class<?>... classes) {
-        CompactStreamSerializer compactStreamSerializer = mock(CompactStreamSerializer.class);
-        when(compactStreamSerializer.canBeSerializedAsCompact(any())).thenReturn(true);
+        CompactStreamSerializer compactStreamSerializer = new CompactStreamSerializer(cls -> CompactStreamSerializerAdapter.class,
+                new CompactSerializationConfig(), null, null, null,
+                ExtraReflectiveCompactSerializationRestrictions.NO_RESTRICTIONS);
         ReflectiveCompactSerializer serializer = new ReflectiveCompactSerializer(compactStreamSerializer);
         ArrayList<Schema> schemas = new ArrayList<>(classes.length);
         for (Class<?> clazz : classes) {
