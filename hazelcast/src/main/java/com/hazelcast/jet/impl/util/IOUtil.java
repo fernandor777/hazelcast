@@ -156,8 +156,8 @@ public final class IOUtil {
      * @param baseDir  the trusted base/sandbox directory; must exist
      * @param userPath the user-supplied relative path/filename string
      * @return the resolved and validated absolute Path (may not yet exist)
-     * @throws IllegalArgumentException if the path is absolute or rooted, is a symbolic link,
-     *                                  resolves outside the base directory, or names the base directory itself
+     * @throws IllegalArgumentException if the base is not a directory, the user path is absolute or rooted,
+     *                                  or the resolved path escapes the base directory
      * @throws IOException              if an I/O error occurs during path resolution
      */
     public static Path resolveAndValidatePath(@Nonnull Path baseDir, @Nonnull String userPath) throws IOException {
@@ -179,8 +179,6 @@ public final class IOUtil {
         }
 
         Path targetPath = resolvedBase.resolve(userPathObj).normalize();
-
-
         // Reject a symlink at the target itself; Files.exists() follows links, so a dangling
         // symlink would otherwise be treated as a non-existent file and returned unresolved
         if (Files.isSymbolicLink(targetPath)) {
@@ -210,5 +208,16 @@ public final class IOUtil {
 
         return targetPath;
     }
-}
 
+    /**
+     * Checks whether given name resolves in baseDir. Helps to detect malicious escapes from baseDir.
+     *
+     * @param baseDir the base directory expected to parent the files
+     * @param name the file name expected to land in the base directory
+     * @return the resolved path in the base directory
+     * @throws IOException if an I/O error occurs during path resolution
+     */
+    public static Path resolveInDir(Path baseDir, String name) throws IOException {
+        return resolveAndValidatePath(baseDir, name);
+    }
+}
