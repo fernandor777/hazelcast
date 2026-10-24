@@ -33,6 +33,7 @@ import com.hazelcast.crdt.TargetNotReplicaException;
 import com.hazelcast.durableexecutor.StaleTaskIdException;
 import com.hazelcast.internal.cluster.impl.ConfigMismatchException;
 import com.hazelcast.internal.util.AddressUtil;
+import com.hazelcast.logging.LoggingService;
 import com.hazelcast.map.QueryResultSizeExceededException;
 import com.hazelcast.map.ReachedMaxSizeException;
 import com.hazelcast.memory.NativeOutOfMemoryError;
@@ -93,6 +94,7 @@ import java.util.concurrent.TimeoutException;
 
 import static java.util.Arrays.asList;
 import static junit.framework.TestCase.assertEquals;
+import static org.mockito.Mockito.mock;
 
 @RunWith(HazelcastParametrizedRunner.class)
 @UseParametersRunnerFactory(HazelcastParallelParametersRunnerFactory.class)
@@ -103,7 +105,7 @@ public class ClientExceptionFactoryTest extends HazelcastTestSupport {
     public Throwable throwable;
 
     private ClientExceptionFactory exceptionFactory = new ClientExceptionFactory(true,
-            Thread.currentThread().getContextClassLoader());
+            Thread.currentThread().getContextClassLoader(), mock(LoggingService.class));
 
     @Test
     public void testException() {
