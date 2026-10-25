@@ -317,3 +317,105 @@ Enterprise-only and is tracked separately in the direct advisory ledger.
   skips**. Main and test compilation passed with Java 21 targeting release 17.
 - The regression and positive case are a test/ledger-only change; no Jet
   file-read production paths or other advisories were changed here.
+
+## Dependency CVEs: severity-ordered report
+
+This report covers the 45 dependency CVEs supplied for Hazelcast 5.4.0. Current
+versions below are those declared in the Hazelcast 5.4.0 source POMs. The
+Tomcat, database-driver, and AssertJ versions shown here are test-scoped.
+Log4j is provided/optional, while JLine is provided/optional and noted in the
+POM as packaged in the server distribution. Confirm the published artifact,
+distribution contents, and deployment SBOM before treating each finding as
+production exposure.
+
+Severity is ordered by CVSS where cited. For Tomcat CVEs where this report
+does not give a CVSS category, it maps the Tomcat project's impact labels as
+Important → High, Moderate → Medium, and Low → Low. The Tomcat project records
+its impact levels and fixed releases in its [Tomcat 10 security advisories](https://tomcat.apache.org/security-10.html);
+the current Tomcat 10.1 release is [10.1.61](https://tomcat.apache.org/).
+
+### Critical
+
+| Severity | CVE | Library (current version) | Suggested upgrade |
+| --- | --- | --- | --- |
+| Critical (CVSS 9.8) | [CVE-2024-50379](https://nvd.nist.gov/vuln/detail/CVE-2024-50379) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| Critical (CVSS 9.8) | [CVE-2024-56337](https://nvd.nist.gov/vuln/detail/CVE-2024-56337) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61`; check Java-specific configuration if applicable |
+| Critical (CVSS 9.8) | [CVE-2025-24813](https://nvd.nist.gov/vuln/detail/CVE-2025-24813) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+
+The Tomcat CVEs above have configuration-dependent exploit conditions; CVSS
+classifies them as Critical. See the [CVE-2025-24813 NVD detail](https://nvd.nist.gov/vuln/detail/CVE-2025-24813),
+[CVE-2024-50379 NVD detail](https://nvd.nist.gov/vuln/detail/CVE-2024-50379),
+and [CVE-2024-56337 advisory](https://security.netapp.com/advisory/ntap-20250103-0002/).
+
+### High
+
+| Severity | CVE | Library (current version) | Suggested upgrade |
+| --- | --- | --- | --- |
+| High (CVSS 8.2) | [CVE-2026-24400](https://nvd.nist.gov/vuln/detail/CVE-2026-24400) | AssertJ (`3.25.3`, test scope) | `3.27.7` or later |
+| High (CVSS 8.2; Tomcat: Important) | [CVE-2026-65182](https://nvd.nist.gov/vuln/detail/CVE-2026-65182) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| High (CVSS 7.5) | [CVE-2026-42198](https://nvd.nist.gov/vuln/detail/CVE-2026-42198) | PostgreSQL JDBC (`42.7.2`, test scope) | `42.7.11` or later |
+| High | [CVE-2025-59250](https://nvd.nist.gov/vuln/detail/CVE-2025-59250) | Microsoft SQL Server JDBC (`12.6.1.jre11`, test scope) | `12.6.5.jre11` or later |
+| High (Tomcat: Important) | [CVE-2025-55752](https://nvd.nist.gov/vuln/detail/CVE-2025-55752) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| High (Tomcat: Important) | [CVE-2025-53506](https://nvd.nist.gov/vuln/detail/CVE-2025-53506) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| High (Tomcat: Important) | [CVE-2025-48989](https://nvd.nist.gov/vuln/detail/CVE-2025-48989) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| High (Tomcat: Important) | [CVE-2025-48988](https://nvd.nist.gov/vuln/detail/CVE-2025-48988) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| High (Tomcat: Important) | [CVE-2025-31650](https://nvd.nist.gov/vuln/detail/CVE-2025-31650) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| High (Tomcat: Important) | [CVE-2024-38286](https://nvd.nist.gov/vuln/detail/CVE-2024-38286) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| High (Tomcat: Important) | [CVE-2024-34750](https://nvd.nist.gov/vuln/detail/CVE-2024-34750) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+
+AssertJ's NVD record rates CVE-2026-24400 High and lists 3.27.7 as fixed.
+The [pgjdbc advisory](https://github.com/pgjdbc/pgjdbc/security/advisories/GHSA-98qh-xjc8-98pq)
+rates CVE-2026-42198 High and fixes it in 42.7.11. Microsoft's [JDBC driver
+release notes](https://learn.microsoft.com/en-us/sql/connect/jdbc/release-notes-for-the-jdbc-driver?view=sql-server-ver17)
+list the fixed 12.6.5 line for CVE-2025-59250.
+
+### Medium
+
+| Severity | CVE | Library (current version) | Suggested upgrade |
+| --- | --- | --- | --- |
+| Medium (CVSS 5.5) | [CVE-2026-77420](https://nvd.nist.gov/vuln/detail/CVE-2026-77420) | JLine (`3.25.1`, provided/optional) | `3.30.15` or later on 3.x |
+| Medium (CVSS 4.0 6.3) | [CVE-2026-49844](https://nvd.nist.gov/vuln/detail/CVE-2026-49844) | Log4j API (`2.23.0`, provided/optional) | Log4j `2.26.1` or later |
+| Medium (Tomcat: Moderate) | [CVE-2026-43515](https://nvd.nist.gov/vuln/detail/CVE-2026-43515) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| Medium (Tomcat: Moderate) | [CVE-2026-43512](https://nvd.nist.gov/vuln/detail/CVE-2026-43512) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| Medium (CVSS 4.0 6.9) | [CVE-2026-34480](https://nvd.nist.gov/vuln/detail/CVE-2026-34480) | Log4j Core (`2.23.0`, provided/optional) | Log4j `2.26.1` or later |
+| Medium (CVSS 4.0 6.9) | [CVE-2026-34478](https://nvd.nist.gov/vuln/detail/CVE-2026-34478) | Log4j Core (`2.23.0`, provided/optional) | Log4j `2.26.1` or later |
+| Medium (CVSS 4.0 6.3) | [CVE-2026-34477](https://nvd.nist.gov/vuln/detail/CVE-2026-34477) | Log4j Core (`2.23.0`, provided/optional) | Log4j `2.26.1` or later |
+| Medium (Tomcat: Moderate) | [CVE-2026-29145](https://nvd.nist.gov/vuln/detail/CVE-2026-29145) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| Medium (Tomcat: Moderate) | [CVE-2026-24734](https://nvd.nist.gov/vuln/detail/CVE-2026-24734) | Apache Tomcat (`10.1.19`, test scope); Tomcat Native not declared | Tomcat `10.1.61`; if Native is used, `1.3.5+` or `2.0.12+` |
+| Medium (Tomcat: Moderate) | [CVE-2025-66614](https://nvd.nist.gov/vuln/detail/CVE-2025-66614) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| Medium (Tomcat: Moderate) | [CVE-2025-55668](https://nvd.nist.gov/vuln/detail/CVE-2025-55668) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| Medium (Tomcat: Moderate) | [CVE-2025-49125](https://nvd.nist.gov/vuln/detail/CVE-2025-49125) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| Medium (CVSS 4.0 6.3) | [CVE-2025-68161](https://nvd.nist.gov/vuln/detail/CVE-2025-68161) | Log4j Core (`2.23.0`, provided/optional) | Log4j `2.26.1` or later |
+
+JLine's fix is 3.30.15. Log4j lists fixes across 2.25.x and 2.26.x, so 2.26.1
+covers this set. The Log4j CVSS 4.0 ratings are listed on the [Apache Log4j
+security advisories](https://logging.apache.org/security.html); JLine details
+are in the [CVE-2026-77420 advisory](https://access.redhat.com/security/cve/cve-2026-77420).
+
+### Low
+
+| Severity | CVE | Library (current version) | Suggested upgrade |
+| --- | --- | --- | --- |
+| Low (Tomcat: Low) | [CVE-2026-68525](https://nvd.nist.gov/vuln/detail/CVE-2026-68525) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| Low (Tomcat: Low) | [CVE-2026-65905](https://nvd.nist.gov/vuln/detail/CVE-2026-65905) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| Low (Tomcat: Low) | [CVE-2026-43514](https://nvd.nist.gov/vuln/detail/CVE-2026-43514) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| Low (Tomcat: Low) | [CVE-2026-43513](https://nvd.nist.gov/vuln/detail/CVE-2026-43513) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| Low (Tomcat: Low) | [CVE-2026-42498](https://nvd.nist.gov/vuln/detail/CVE-2026-42498) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| Low (Tomcat: Low) | [CVE-2026-41293](https://nvd.nist.gov/vuln/detail/CVE-2026-41293) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| Low (Tomcat: Low) | [CVE-2026-41284](https://nvd.nist.gov/vuln/detail/CVE-2026-41284) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| Low (Tomcat: Low) | [CVE-2026-34487](https://nvd.nist.gov/vuln/detail/CVE-2026-34487) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| Low (Tomcat: Low) | [CVE-2026-34483](https://nvd.nist.gov/vuln/detail/CVE-2026-34483) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| Low (Tomcat: Low) | [CVE-2026-25854](https://nvd.nist.gov/vuln/detail/CVE-2026-25854) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| Low (Tomcat: Low) | [CVE-2026-24880](https://nvd.nist.gov/vuln/detail/CVE-2026-24880) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| Low (Tomcat: Low) | [CVE-2026-24733](https://nvd.nist.gov/vuln/detail/CVE-2026-24733) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| Low (Tomcat: Low) | [CVE-2025-61795](https://nvd.nist.gov/vuln/detail/CVE-2025-61795) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| Low (Tomcat: Low) | [CVE-2025-55754](https://nvd.nist.gov/vuln/detail/CVE-2025-55754) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| Low (Tomcat: Low) | [CVE-2025-52520](https://nvd.nist.gov/vuln/detail/CVE-2025-52520) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| Low (Tomcat: Low) | [CVE-2025-49124](https://nvd.nist.gov/vuln/detail/CVE-2025-49124) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| Low (Tomcat: Low) | [CVE-2025-46701](https://nvd.nist.gov/vuln/detail/CVE-2025-46701) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+| Low (Tomcat: Low) | [CVE-2025-31651](https://nvd.nist.gov/vuln/detail/CVE-2025-31651) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
+
+Current versions are declared in the [root POM](pom.xml), [Hazelcast POM](hazelcast/pom.xml),
+and [SQL module POM](hazelcast-sql/pom.xml). The CVEs and suggested versions
+should be marked remediated only after verifying actual resolved coordinates
+and scopes in the published artifact, distribution, and deployment SBOM.
