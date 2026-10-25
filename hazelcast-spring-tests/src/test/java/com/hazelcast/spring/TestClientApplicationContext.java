@@ -397,9 +397,8 @@ public class TestClientApplicationContext {
 
     @Test
     public void tesCompactSerializationConfig() {
-        CompactSerializationConfig compactSerializationConfig = clientWithCompactSerialization.getClientConfig()
-                .getSerializationConfig()
-                .getCompactSerializationConfig();
+        SerializationConfig serializationConfig = clientWithCompactSerialization.getClientConfig().getSerializationConfig();
+        CompactSerializationConfig compactSerializationConfig = serializationConfig.getCompactSerializationConfig();
 
         List<String> serializerClassNames
                 = CompactSerializationConfigAccessor.getSerializerClassNames(compactSerializationConfig);
