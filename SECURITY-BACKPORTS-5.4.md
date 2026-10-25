@@ -6,9 +6,9 @@ This is a custom backport, not an official Hazelcast patch release.
 
 Backports completed so far: CVE-2026-107726, GHSA-rmqf-mh9c-3gr4,
 GHSA-w294-6q5q-53p8, GHSA-wxh9-6gx5-vrjg, GHSA-m4hm-fvgc-9qpm, and
-GHSA-jcpf-8phq-8mmj, GHSA-74r8-7r86-phxq, and GHSA-jpwr-2cr3-32fm.
-Other advisories below are not remediated on this branch. Remaining Jet path
-preparations are isolated in `/tmp/hz-security-paths` and are not integrated.
+GHSA-jcpf-8phq-8mmj, GHSA-74r8-7r86-phxq, GHSA-jpwr-2cr3-32fm, and
+GHSA-6hfv-j8jg-ggpx.
+Other advisories below are not remediated on this branch.
 
 ## Environment and validation
 
@@ -26,11 +26,11 @@ preparations are isolated in `/tmp/hz-security-paths` and are not integrated.
   `ReflectionHelperTest`); `/tmp/hz-security-baseline-tests.log`.
 - Baseline SQL reactor `test-compile` passed after allowing dependency
   resolution; `/tmp/hz-security-baseline-sql.log`.
-- Baseline negative control: standalone temporary-file fixture confirmed
+- Initial negative control: standalone temporary-file fixture confirmed
   `ReflectionHelper.extractValue(ReadFilesP.metaSupplier(...),
-  "traverser.next", true)` reads the fixture without starting Jet.
-  Reproducer: `/tmp/JetReadBaseline.java`; a durable regression test must
-  prove the restricted query policy rejects this path after integration.
+  "traverser.next", true)` reads the fixture without starting Jet before the
+  Traverser block was integrated. The durable regression below confirms the
+  default policy now rejects the same path.
 
 ## Advisory ledger
 
@@ -44,7 +44,7 @@ preparations are isolated in `/tmp/hz-security-paths` and are not integrated.
 | GHSA-74r8-7r86-phxq | 3b07d56ee7; Predicate policy hunk from 14c64970f6 | 50ba3b4423, 8c748e012a | Backported; focused validation passed |
 | GHSA-jpwr-2cr3-32fm | 1d3b4eee45, c5cc4b386c | 87cb15f82c, 0148d3a060 | Backported; focused validation passed |
 | GHSA-m4hm-fvgc-9qpm | c5ec28ec3c | 1abf986a80; fixture cleanup ca8230527e | Backported; official advisory currently omits 5.4 from affected ranges |
-| GHSA-6hfv-j8jg-ggpx | Candidate 3b07d56ee7; same context-check batch | Exact advisory mapping unconfirmed | Unverified |
+| GHSA-6hfv-j8jg-ggpx | 3b07d56ee7 (CTT-1201 Traverser block) | Existing backport 50ba3b4423; direct fixture regression and positive POJO query added | Covered; focused validation passed |
 | GHSA-p2qm-f9x7-x488 | Enterprise declarative pipeline | Implementation absent from Community repository | External |
 
 ## Acceptance
@@ -211,3 +211,18 @@ remain explicit; Enterprise-only and unverified items are not claimed fixed.
 - Upstream sources: `1d3b4eee45ade5ee1ab30659ec2201d8da7066a8` and
   `c5cc4b386c389ad5797d0aa60f5dcccea990d7b5`. Backports:
   `87cb15f82c` and `0148d3a060`.
+
+## GHSA-6hfv-j8jg-ggpx implementation and checks
+
+- No additional production change was needed. The existing default reflective
+  lookup policy rejects `Traverser` implementations; backport `50ba3b4423`
+  carries upstream commit `3b07d56ee70e5fc7767b6d6a3510a438dc0991e6`.
+- Added a regression using `ReadFilesP.metaSupplier` over a temporary harmless
+  file. Full-access reflection reads its contents via `traverser.next`, while
+  the default `ReflectionHelper.extractValue(..., "traverser.next", true)`
+  rejects the path. A separate positive test confirms normal POJO fields remain
+  queryable.
+- Focused `ReflectionHelperTest` passed: **31 tests, zero failures/errors or
+  skips**. Main and test compilation passed with Java 21 targeting release 17.
+- The regression and positive case are a test/ledger-only change; no Jet
+  file-read production paths or other advisories were changed here.

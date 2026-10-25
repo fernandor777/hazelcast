@@ -19,6 +19,8 @@ package com.hazelcast.query.impl.getters;
 import com.fasterxml.jackson.databind.introspect.MemberKey;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.jet.Traverser;
+import com.hazelcast.jet.core.ProcessorMetaSupplier;
+import com.hazelcast.jet.impl.connector.ReadFilesP;
 import com.hazelcast.query.QueryException;
 import com.hazelcast.query.ReflectiveAttributeTestObject;
 import com.hazelcast.query.impl.getters.policy.DefaultReflectiveAttributeLookupPolicy;
@@ -28,10 +30,15 @@ import com.hazelcast.query.impl.getters.policy.ReflectiveAttributeLookupPolicy;
 import com.hazelcast.test.HazelcastParallelClassRunner;
 import com.hazelcast.test.annotation.ParallelJVMTest;
 import com.hazelcast.test.annotation.QuickTest;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.springframework.beans.testutils.BeanWrapperTestObject;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static com.hazelcast.internal.util.RootCauseMatcher.rootCause;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,6 +49,9 @@ import static org.mockito.Mockito.mock;
 @RunWith(HazelcastParallelClassRunner.class)
 @Category({QuickTest.class, ParallelJVMTest.class})
 public class ReflectionHelperTest {
+
+    @Rule
+    public final TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Test
     public void extractValue_whenIntermediateFieldIsInterfaceAndDoesNotContainField_thenThrowException() {
@@ -234,6 +244,27 @@ public class ReflectionHelperTest {
     public void extractValue_whenTraverserBlockedClass_thenThrowException() {
         Traverser<String> traverser = () -> "value";
         assertRestrictedLookupFailure(traverser, "this");
+    }
+
+    @Test
+    public void extractValue_whenReadFilesTraverserPath_thenDefaultPolicyRejectsIt() throws Exception {
+        Path directory = temporaryFolder.newFolder().toPath();
+        Path file = directory.resolve("harmless.txt");
+        Files.writeString(file, "harmless file content");
+        ProcessorMetaSupplier metaSupplier = ReadFilesP.metaSupplier(directory.toString(), "*.txt", false, false,
+                path -> Files.readAllLines(path).stream());
+
+        assertThat(extractValue(metaSupplier, "traverser.next", true,
+                FullAccessReflectiveAttributeLookupPolicy.INSTANCE)).isEqualTo("harmless file content");
+        assertThatThrownBy(() -> ReflectionHelper.extractValue(metaSupplier, "traverser.next", true))
+                .isInstanceOf(QueryException.class)
+                .hasMessageContaining(ReflectiveAttributeLookupException.POLICY_HINT);
+    }
+
+    @Test
+    public void extractValue_whenOrdinaryPojoField_thenDefaultPolicyAllowsIt() throws Exception {
+        assertThat(ReflectionHelper.extractValue(new ReflectiveAttributeTestObject("ordinary"), "name", true))
+                .isEqualTo("ordinary");
     }
 
     @Test
