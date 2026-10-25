@@ -5,7 +5,8 @@ Baseline: `6a0d8755870b20bd7cd1e6274c0dc2d251290342` on
 This is a custom backport, not an official Hazelcast patch release.
 
 Backports completed so far: CVE-2026-107726, GHSA-rmqf-mh9c-3gr4,
-GHSA-w294-6q5q-53p8, GHSA-wxh9-6gx5-vrjg, and GHSA-m4hm-fvgc-9qpm.
+GHSA-w294-6q5q-53p8, GHSA-wxh9-6gx5-vrjg, GHSA-m4hm-fvgc-9qpm, and
+GHSA-jcpf-8phq-8mmj.
 Other advisories below are not remediated on this branch. Remaining Jet path
 preparations are isolated in `/tmp/hz-security-paths` and are not integrated.
 
@@ -37,7 +38,7 @@ preparations are isolated in `/tmp/hz-security-paths` and are not integrated.
 | --- | --- | --- | --- |
 | CVE-2026-107726 | 17e7422009, 361979da12, d76c6a6b65, 35befe6ef3 | fa31b943cd, 25ebe096e6, 0ca0941602, dfd9673240; adaptations 787a9b73b5, 4cf9311831 | Backported; validation below |
 | GHSA-w294-6q5q-53p8 | c8a4cd9823, 715446f4fc, 3e452c98f0, a9fa45b765 | 5257a32136, 49569ff9ea, c5a22009d1, 47d7564c0c; adaptation edb3b44376 | Backported; focused validation passed |
-| GHSA-jcpf-8phq-8mmj | 3d978c3b3c, 914b22f305, 960de839b7, 55f4a4a4f7, 525342c9eb, 64331b0f0e | Pending | Pending |
+| GHSA-jcpf-8phq-8mmj | 3d978c3b3c, 914b22f305, 960de839b7, 55f4a4a4f7, 525342c9eb, 64331b0f0e | 59087a168c, 08e33669a4, 8659284aa2, 3554a7c36d, dd622c2dee, f6ab3ff988; adaptation e8909c878a | Backported; focused validation passed |
 | GHSA-wxh9-6gx5-vrjg | 9646d046f5, 260c09e0ef, 1de94ba4b8, 02a3c5ac59, 12e0ebf476 | 0af3999447 | Backported; focused validation passed |
 | GHSA-rmqf-mh9c-3gr4 | bdc0f1bf38 | ee4046a1ac | Backported; focused validation passed |
 | GHSA-74r8-7r86-phxq | 3b07d56ee7, 14c64970f6; context checks 644560ce61, 7af6ddea7e, 2bb02d562c | Mapping inferred; regression evidence required | Unverified |
@@ -161,3 +162,21 @@ remain explicit; Enterprise-only and unverified items are not claimed fixed.
   `1abf986a80`. The GitHub advisory's current affected-version list starts
   below 5.5.10 and does not list 5.4; this branch carries the requested 5.4
   hardening based on the shared H2 gadget path.
+
+## GHSA-jcpf-8phq-8mmj implementation and checks
+
+- Restricted `JSON_QUERY` target classes; applied the reflective filter
+  during SQL UDT reconstruction; rejected fieldless custom `QueryDataType`
+  deserialization; used the default SQL blocklist when no explicit filter is
+  configured; checked the resolved UDT class name; and checked SQL availability
+  before decoding request parameters.
+- Adapted test imports/helpers to Hazelcast 5.4. SQL reactor test compilation
+  passed. Focused reflective filter, SQL UDT/default/malformed-type/JSON and
+  SQL-disabled tests passed: **84 tests**. POJO and Hazelcast object upsert
+  reconstruction tests passed: **16 tests**. Total: **100 tests, zero
+  failures/errors/skips**.
+- Upstream commits: `3d978c3b3c` (`JsonQueryTarget` target restrictions),
+  `914b22f305` (UDT filtering), `960de839b7` (fieldless custom type guard),
+  `55f4a4a4f7` (default SQL filter), `525342c9eb` (resolved UDT name), and
+  `64331b0f0e` (SQL-enabled check before parameter decoding). Backport commits
+  begin at `59087a168c`; 5.4 test adaptation: `e8909c878a`.
