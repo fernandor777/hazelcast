@@ -6,7 +6,7 @@ This is a custom backport, not an official Hazelcast patch release.
 
 Backports completed so far: CVE-2026-107726, GHSA-rmqf-mh9c-3gr4,
 GHSA-w294-6q5q-53p8, GHSA-wxh9-6gx5-vrjg, GHSA-m4hm-fvgc-9qpm, and
-GHSA-jcpf-8phq-8mmj, and GHSA-74r8-7r86-phxq.
+GHSA-jcpf-8phq-8mmj, GHSA-74r8-7r86-phxq, and GHSA-jpwr-2cr3-32fm.
 Other advisories below are not remediated on this branch. Remaining Jet path
 preparations are isolated in `/tmp/hz-security-paths` and are not integrated.
 
@@ -42,7 +42,7 @@ preparations are isolated in `/tmp/hz-security-paths` and are not integrated.
 | GHSA-wxh9-6gx5-vrjg | 9646d046f5, 260c09e0ef, 1de94ba4b8, 02a3c5ac59, 12e0ebf476 | 0af3999447 | Backported; focused validation passed |
 | GHSA-rmqf-mh9c-3gr4 | bdc0f1bf38 | ee4046a1ac | Backported; focused validation passed |
 | GHSA-74r8-7r86-phxq | 3b07d56ee7; Predicate policy hunk from 14c64970f6 | 50ba3b4423, 8c748e012a | Backported; focused validation passed |
-| GHSA-jpwr-2cr3-32fm | 1d3b4eee45, c5cc4b386c | Pending | Pending |
+| GHSA-jpwr-2cr3-32fm | 1d3b4eee45, c5cc4b386c | 87cb15f82c, 0148d3a060 | Backported; focused validation passed |
 | GHSA-m4hm-fvgc-9qpm | c5ec28ec3c | 1abf986a80; fixture cleanup ca8230527e | Backported; official advisory currently omits 5.4 from affected ranges |
 | GHSA-6hfv-j8jg-ggpx | Candidate 3b07d56ee7; same context-check batch | Exact advisory mapping unconfirmed | Unverified |
 | GHSA-p2qm-f9x7-x488 | Enterprise declarative pipeline | Implementation absent from Community repository | External |
@@ -197,3 +197,17 @@ remain explicit; Enterprise-only and unverified items are not claimed fixed.
 - Upstream sources: `3b07d56ee70e5fc7767b6d6a3510a438dc0991e6` and the
   Predicate policy hunk from `14c64970f64bc8cf608510ef7228bd0e18c70cf5`.
   Backports: `50ba3b4423` and `8c748e012a`.
+
+## GHSA-jpwr-2cr3-32fm implementation and checks
+
+- Validate custom classpath paths against their trusted base and reject
+  absolute/rooted, traversal, and symlink escapes. Hardened `rollByDate` file
+  initialization so the formatted date path is checked before writing.
+- Adapted 5.4 logger, Jackson Jr import, and job status assertion APIs.
+  `resolveInDir` now uses the symlink-aware resolver because lexical path
+  containment alone allowed an intermediate symlink to escape the base.
+- Core main/test compilation passed. `IOUtilPathValidationTest` passed
+  **26 tests** (two Windows-only skips); `WriteFilePTest` passed **20 tests**.
+- Upstream sources: `1d3b4eee45ade5ee1ab30659ec2201d8da7066a8` and
+  `c5cc4b386c389ad5797d0aa60f5dcccea990d7b5`. Backports:
+  `87cb15f82c` and `0148d3a060`.
