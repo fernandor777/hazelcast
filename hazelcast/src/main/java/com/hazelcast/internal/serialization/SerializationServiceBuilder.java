@@ -71,10 +71,6 @@ public interface SerializationServiceBuilder {
 
     SerializationServiceBuilder isCompatibility(boolean isCompatibility);
 
-    SerializationServiceBuilder setVersionedSerializationEnabled(boolean versionedSerializationEnabled);
-
-    SerializationServiceBuilder setClusterVersionAware(ClusterVersionAware clusterVersionAware);
-
     SerializationServiceBuilder setProperties(HazelcastProperties properties);
 
     <T extends SerializationService> T build();

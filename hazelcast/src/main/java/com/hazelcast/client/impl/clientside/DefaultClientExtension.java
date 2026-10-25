@@ -19,7 +19,6 @@ package com.hazelcast.client.impl.clientside;
 import com.hazelcast.client.HazelcastClientNotActiveException;
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.client.config.ClientNetworkConfig;
-import com.hazelcast.client.config.RoutingMode;
 import com.hazelcast.client.config.SocketOptions;
 import com.hazelcast.client.cp.internal.CPSubsystemImpl;
 import com.hazelcast.client.cp.internal.datastructures.proxy.ClientRaftProxyFactory;

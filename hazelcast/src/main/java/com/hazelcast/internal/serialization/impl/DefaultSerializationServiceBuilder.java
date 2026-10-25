@@ -87,8 +87,6 @@ public class DefaultSerializationServiceBuilder implements SerializationServiceB
 
     protected SchemaService schemaService;
     protected boolean isCompatibility;
-    protected boolean versionedSerializationEnabled;
-    protected ClusterVersionAware clusterVersionAware;
     protected HazelcastProperties properties;
 
     @Override

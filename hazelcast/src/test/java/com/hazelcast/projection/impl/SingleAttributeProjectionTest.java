@@ -46,6 +46,7 @@ import java.util.Optional;
 
 import static com.hazelcast.spi.properties.ClusterProperty.PARTITION_COUNT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(HazelcastParallelClassRunner.class)
