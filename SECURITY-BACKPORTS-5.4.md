@@ -4,11 +4,9 @@ Baseline: `6a0d8755870b20bd7cd1e6274c0dc2d251290342` on
 `backport/jet-cve-fixes-5.4`. Upstream reference: master `7e06448064`.
 This is a custom backport, not an official Hazelcast patch release.
 
-Execution was stopped at the user's request after the first advisory,
-CVE-2026-107726. Other advisories below are not remediated on this branch.
-Parallel preparations for error handling/H2 and Jet paths are preserved in
-isolated worktrees `/tmp/hz-security-errors` and `/tmp/hz-security-paths`;
-they were not integrated.
+Backports completed so far: CVE-2026-107726 and GHSA-rmqf-mh9c-3gr4.
+Other advisories below are not remediated on this branch. Remaining Jet path
+preparations are isolated in `/tmp/hz-security-paths` and are not integrated.
 
 ## Environment and validation
 
@@ -40,7 +38,7 @@ they were not integrated.
 | GHSA-w294-6q5q-53p8 | c8a4cd9823, 715446f4fc, 3e452c98f0, a9fa45b765 | Pending | Pending |
 | GHSA-jcpf-8phq-8mmj | 3d978c3b3c, 914b22f305, 960de839b7, 55f4a4a4f7, 525342c9eb, 64331b0f0e | Pending | Pending |
 | GHSA-wxh9-6gx5-vrjg | 9646d046f5, 260c09e0ef, 1de94ba4b8, 02a3c5ac59, 12e0ebf476 | Pending | Pending |
-| GHSA-rmqf-mh9c-3gr4 | bdc0f1bf38 | Pending | Pending |
+| GHSA-rmqf-mh9c-3gr4 | bdc0f1bf38 | ee4046a1ac | Backported; focused validation passed |
 | GHSA-74r8-7r86-phxq | 3b07d56ee7, 14c64970f6; context checks 644560ce61, 7af6ddea7e, 2bb02d562c | Mapping inferred; regression evidence required | Unverified |
 | GHSA-jpwr-2cr3-32fm | 1d3b4eee45, c5cc4b386c | Pending | Pending |
 | GHSA-m4hm-fvgc-9qpm | c5ec28ec3c | Pending | Pending |
@@ -86,4 +84,18 @@ remain explicit; Enterprise-only and unverified items are not claimed fixed.
   attempt exposed the corrected header/import issues; it was not rerun for
   unrelated modules after the user limited work to the current advisory.
 - Final focused totals: **804 tests run, zero failures/errors, four skips**.
-  Work stopped after this advisory; no remaining batches were integrated.
+  The first CVE batch was completed before resuming work on GHSA-rmqf-mh9c-3gr4.
+
+## GHSA-rmqf-mh9c-3gr4 implementation and checks
+
+- Ported upstream exception class validation to the 5.4 client exception
+  factory: reflected classes must extend `Throwable` before construction;
+  invalid classes are logged and restored as `UndefinedErrorCodeException`.
+- Adapted the factory constructor and member/client call sites to inject the
+  existing logging service. Added top-level and nested invalid-class tests.
+- Focused `ClientExceptionFactoryTest` and
+  `ClientExceptionFactoryValidationTest` passed: **95 tests, zero
+  failures/errors**. Surefire reports are in
+  `/tmp/hz-security-errors/hazelcast/target/surefire-reports/`.
+- Upstream source: `bdc0f1bf38318c82b542a1aeb9e573efc77855e2`; backport:
+  `ee4046a1ac`.
