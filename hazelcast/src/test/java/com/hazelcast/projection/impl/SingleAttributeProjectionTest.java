@@ -27,6 +27,7 @@ import com.hazelcast.nio.serialization.DataSerializable;
 import com.hazelcast.projection.Projection;
 import com.hazelcast.projection.Projections;
 import com.hazelcast.query.QueryException;
+import com.hazelcast.query.ReflectiveAttributeTestObject;
 import com.hazelcast.test.HazelcastParallelClassRunner;
 import com.hazelcast.test.HazelcastTestSupport;
 import com.hazelcast.test.TestHazelcastInstanceFactory;
@@ -45,6 +46,7 @@ import java.util.Optional;
 
 import static com.hazelcast.spi.properties.ClusterProperty.PARTITION_COUNT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(HazelcastParallelClassRunner.class)
@@ -135,6 +137,55 @@ public class SingleAttributeProjectionTest extends HazelcastTestSupport {
 
         expected.expect(QueryException.class);
         map.project(projection);
+    }
+
+    @Test
+    public void singleAttribute_restrictedLookup_staticField() {
+        IMap<String, ReflectiveAttributeTestObject> map = getMapWithNodeCount();
+        map.put("key1", new ReflectiveAttributeTestObject("a"));
+
+        assertThatThrownBy(() -> map.project(Projections.singleAttribute("staticInt")))
+                .isInstanceOf(QueryException.class)
+                .hasMessageContaining("cannot be used for attribute extraction");
+    }
+
+    @Test
+    public void singleAttribute_restrictedLookup_staticMethod() {
+        IMap<String, ReflectiveAttributeTestObject> map = getMapWithNodeCount();
+        map.put("key1", new ReflectiveAttributeTestObject("b"));
+
+        assertThatThrownBy(() -> map.project(Projections.singleAttribute("getStaticValue")))
+                .isInstanceOf(QueryException.class)
+                .hasMessageContaining("cannot be used for attribute extraction");
+    }
+
+    @Test
+    public void singleAttribute_restrictedLookup_voidMethod() {
+        IMap<String, ReflectiveAttributeTestObject> map = getMapWithNodeCount();
+        map.put("key1", new ReflectiveAttributeTestObject("c"));
+
+        assertThatThrownBy(() -> map.project(Projections.singleAttribute("doVoid")))
+                .isInstanceOf(QueryException.class)
+                .hasMessageContaining("cannot be used for attribute extraction");
+    }
+
+    @Test
+    public void singleAttribute_restrictedLookup_blockedClass() {
+        IMap<String, ReflectiveAttributeTestObject> map = getMapWithNodeCount();
+        map.put("key1", new ReflectiveAttributeTestObject("d"));
+
+        assertThatThrownBy(() -> map.project(Projections.singleAttribute("hazelcastInstance.name")))
+                .isInstanceOf(QueryException.class)
+                .hasMessageContaining("cannot be used for attribute extraction");
+    }
+
+    @Test
+    public void singleAttribute_restrictedLookup_whenMatchingStaticAndGetter_thenGetterIsUsed() {
+        IMap<String, ReflectiveAttributeTestObject> map = getMapWithNodeCount();
+        map.put("key1", new ReflectiveAttributeTestObject("e"));
+
+        Collection<String> result = map.project(Projections.singleAttribute("name"));
+        assertThat(result).containsExactly("e");
     }
 
     private <K, V> IMap<K, V> getMapWithNodeCount() {

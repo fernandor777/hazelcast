@@ -146,6 +146,7 @@ public class DefaultClientExtension implements ClientExtension {
                     .setHazelcastInstance(hazelcastInstance)
                     .setNotActiveExceptionSupplier(HazelcastClientNotActiveException::new)
                     .setSchemaService(client.getSchemaService())
+                    .setProperties(client.getProperties())
                     .build();
         } catch (Exception e) {
             throw rethrow(e);

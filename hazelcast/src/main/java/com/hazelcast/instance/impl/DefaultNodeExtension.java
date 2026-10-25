@@ -402,6 +402,7 @@ public class DefaultNodeExtension implements NodeExtension {
                     .setSchemaService(node.getSchemaService())
                     .setNotActiveExceptionSupplier(HazelcastInstanceNotActiveException::new)
                     .isCompatibility(isCompatibility)
+                    .setProperties(node.getProperties())
                     .build();
         } catch (Exception e) {
             throw rethrow(e);

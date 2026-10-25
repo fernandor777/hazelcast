@@ -16,6 +16,7 @@
 
 package com.hazelcast.internal.serialization.impl;
 
+import com.hazelcast.config.ClassFilter;
 import com.hazelcast.config.CompactSerializationConfig;
 import com.hazelcast.core.ManagedContext;
 import com.hazelcast.internal.compatibility.serialization.impl.CompatibilitySerializationConstants;
@@ -47,12 +48,16 @@ import com.hazelcast.nio.serialization.HazelcastSerializationException;
 import com.hazelcast.nio.serialization.Portable;
 import com.hazelcast.nio.serialization.Serializer;
 import com.hazelcast.partition.PartitioningStrategy;
+import com.hazelcast.spi.properties.HazelcastProperties;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.Externalizable;
 import java.io.Serializable;
 import java.nio.ByteOrder;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -103,6 +108,7 @@ public abstract class AbstractSerializationService implements InternalSerializat
     private final ILogger logger = Logger.getLogger(InternalSerializationService.class);
     private boolean isCompatibility;
     private final boolean allowOverrideDefaultSerializers;
+    private final HazelcastProperties hazelcastProperties;
 
     AbstractSerializationService(Builder<?> builder) {
         this.inputOutputFactory = builder.inputOutputFactory;
@@ -125,10 +131,12 @@ public abstract class AbstractSerializationService implements InternalSerializat
         this.allowOverrideDefaultSerializers = builder.allowOverrideDefaultSerializers;
         CompactSerializationConfig compactSerializationCfg = builder.compactSerializationConfig == null
                 ? new CompactSerializationConfig() : builder.compactSerializationConfig;
-        compactStreamSerializer = new CompactStreamSerializer(this, compactSerializationCfg,
-                managedContext, builder.schemaService, classLoader);
+        compactStreamSerializer = new CompactStreamSerializer(cls -> serializerForClass(cls, false).getClass(),
+                compactSerializationCfg, managedContext, builder.schemaService, classLoader,
+                builder.reflectiveCompactSerializationRestrictionsWithPropertyFilters());
         this.compactWithSchemaSerializerAdapter = new CompactWithSchemaStreamSerializerAdapter(compactStreamSerializer);
         this.compactSerializerAdapter = new CompactStreamSerializerAdapter(compactStreamSerializer);
+        this.hazelcastProperties = builder.hazelcastProperties;
     }
 
     // used by jet
@@ -149,6 +157,7 @@ public abstract class AbstractSerializationService implements InternalSerializat
         this.compactStreamSerializer = prototype.compactStreamSerializer;
         this.compactWithSchemaSerializerAdapter = prototype.compactWithSchemaSerializerAdapter;
         this.compactSerializerAdapter = prototype.compactSerializerAdapter;
+        this.hazelcastProperties = prototype.hazelcastProperties;
     }
 
     //region Serialization Service
@@ -437,6 +446,12 @@ public abstract class AbstractSerializationService implements InternalSerializat
         return version;
     }
 
+    @Override
+    public HazelcastProperties getHazelcastProperties() {
+        return hazelcastProperties;
+    }
+
+    @Override
     public void dispose() {
         active = false;
         for (SerializerAdapter serializer : typeMap.values()) {
@@ -738,6 +753,11 @@ public abstract class AbstractSerializationService implements InternalSerializat
         private boolean allowOverrideDefaultSerializers;
         private CompactSerializationConfig compactSerializationConfig;
         private SchemaService schemaService;
+        private ClassFilter reflectiveCompactSerializationBlockList;
+        private ClassFilter reflectiveCompactSerializationAllowList;
+        private ExtraReflectiveCompactSerializationRestrictions reflectiveCompactSerializationRestrictions
+                = ExtraReflectiveCompactSerializationRestrictions.NO_RESTRICTIONS;
+        private HazelcastProperties hazelcastProperties;
 
         protected Builder() {
         }
@@ -825,6 +845,41 @@ public abstract class AbstractSerializationService implements InternalSerializat
             this.schemaService = schemaService;
             return self();
         }
-    }
 
+        public final T withReflectiveCompactSerializationRestrictions(
+                @Nonnull ExtraReflectiveCompactSerializationRestrictions restrictions) {
+            this.reflectiveCompactSerializationRestrictions = Objects.requireNonNull(restrictions);
+            return self();
+        }
+
+        public final T withReflectiveCompactSerializationBlocklist(@Nullable ClassFilter blockList) {
+            this.reflectiveCompactSerializationBlockList = blockList;
+            return self();
+        }
+
+        public final T withReflectiveCompactSerializationAllowlist(@Nullable ClassFilter allowList) {
+            this.reflectiveCompactSerializationAllowList = allowList;
+            return self();
+        }
+
+        private ExtraReflectiveCompactSerializationRestrictions reflectiveCompactSerializationRestrictionsWithPropertyFilters() {
+            ExtraReflectiveCompactSerializationRestrictions current = reflectiveCompactSerializationRestrictions;
+            return new ExtraReflectiveCompactSerializationRestrictions(
+                    union(current.propertyAllowList(), reflectiveCompactSerializationAllowList),
+                    union(current.propertyBlockList(), reflectiveCompactSerializationBlockList),
+                    current.defaultBlockList());
+        }
+
+        private static ClassFilter union(ClassFilter first, ClassFilter second) {
+            if (first == null) {
+                return second == null ? null : new ClassFilter(second);
+            }
+            return second == null ? new ClassFilter(first) : new ClassFilter(first).add(second);
+        }
+
+        public final T withProperties(HazelcastProperties properties) {
+            this.hazelcastProperties = properties;
+            return self();
+        }
+    }
 }

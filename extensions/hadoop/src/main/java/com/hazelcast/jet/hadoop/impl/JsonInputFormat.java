@@ -16,7 +16,7 @@
 
 package com.hazelcast.jet.hadoop.impl;
 
-import com.hazelcast.function.FunctionEx;
+import com.hazelcast.internal.util.ExceptionUtil;
 import com.hazelcast.jet.impl.util.ReflectionUtils;
 import com.hazelcast.jet.json.JsonUtil;
 import org.apache.hadoop.conf.Configuration;
@@ -84,7 +84,7 @@ public class JsonInputFormat extends FileInputFormat<NullWritable, Object> {
             reader = new LineRecordReader();
         }
 
-        private static FunctionEx<? super String, Object> mapper(Class<?> clazz) {
+        private static ThrowingFunction<? super String, Object> mapper(Class<?> clazz) {
             return clazz == null
                     ? JsonUtil::mapFrom
                     : line -> JsonUtil.beanFrom(line, clazz);
@@ -118,6 +118,20 @@ public class JsonInputFormat extends FileInputFormat<NullWritable, Object> {
         @Override
         public void close() throws IOException {
             reader.close();
+        }
+    }
+
+    @FunctionalInterface
+    private interface ThrowingFunction<T, R> extends Function<T, R> {
+        R applyEx(T t) throws Exception;
+
+        @Override
+        default R apply(T t) {
+            try {
+                return applyEx(t);
+            } catch (Exception e) {
+                throw ExceptionUtil.sneakyThrow(e);
+            }
         }
     }
 

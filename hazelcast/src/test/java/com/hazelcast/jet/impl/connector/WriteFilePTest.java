@@ -23,6 +23,7 @@ import com.hazelcast.jet.SimpleTestInClusterSupport;
 import com.hazelcast.jet.config.JobConfig;
 import com.hazelcast.jet.core.AbstractProcessor;
 import com.hazelcast.jet.core.DAG;
+import com.hazelcast.jet.core.JobStatus;
 import com.hazelcast.jet.core.ProcessorMetaSupplier;
 import com.hazelcast.jet.core.Vertex;
 import com.hazelcast.jet.core.test.TestInbox;
@@ -81,6 +82,7 @@ import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -423,6 +425,49 @@ public class WriteFilePTest extends SimpleTestInClusterSupport {
     @Test
     public void stressTest_atLeastOnce_forceful() throws Exception {
         stressTest(false, false);
+    }
+
+    @Test
+    public void when_datePatternEscapesDirectory_then_jobFails() throws Exception {
+        Path directory = Files.createTempDirectory("write-file-p-test");
+
+        Pipeline p = Pipeline.create();
+        p.readFrom(TestSources.items("item1", "item2"))
+                .writeTo(Sinks.filesBuilder(directory.toString())
+                        .rollByDate("'../escaped'")
+                        .build());
+
+        Job job = instance().getJet().newJob(p);
+
+        assertThatThrownBy(job::join).hasMessageContaining("Path traversal attempt");
+        assertJobStatusEventually(job, JobStatus.FAILED);
+
+        // nothing must have been created outside the sink directory
+        try (Stream<Path> files = Files.list(directory.getParent())) {
+            assertTrue(files.noneMatch(f -> f.getFileName().startsWith("escaped")));
+        }
+    }
+
+    @Test
+    public void when_datePatternResolvesThroughSymlink_then_jobFails() throws Exception {
+        Path directory = Files.createTempDirectory("write-file-p-test");
+        Path outside = Files.createTempDirectory("write-file-p-outside");
+        Files.createSymbolicLink(directory.resolve("link"), outside);
+
+        Pipeline p = Pipeline.create();
+        p.readFrom(TestSources.items("item1", "item2"))
+                .writeTo(Sinks.filesBuilder(directory.toString())
+                        .rollByDate("'link/escaped'")
+                        .build());
+
+        Job job = instance().getJet().newJob(p);
+
+        assertThatThrownBy(job::join).hasMessageContaining("Path traversal attempt");
+        assertJobStatusEventually(job, JobStatus.FAILED);
+
+        try (Stream<Path> files = Files.list(outside)) {
+            assertTrue(files.findAny().isEmpty());
+        }
     }
 
     private void stressTest(boolean graceful, boolean exactlyOnce) throws Exception {

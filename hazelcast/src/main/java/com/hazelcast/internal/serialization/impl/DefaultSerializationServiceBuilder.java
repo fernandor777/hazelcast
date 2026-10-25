@@ -16,9 +16,9 @@
 
 package com.hazelcast.internal.serialization.impl;
 
+import com.hazelcast.config.ClassFilter;
 import com.hazelcast.config.CompactSerializationConfig;
 import com.hazelcast.config.GlobalSerializerConfig;
-import com.hazelcast.config.JavaSerializationFilterConfig;
 import com.hazelcast.config.SerializationConfig;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.HazelcastInstanceAware;
@@ -26,6 +26,7 @@ import com.hazelcast.core.ManagedContext;
 import com.hazelcast.instance.BuildInfoProvider;
 import com.hazelcast.internal.memory.GlobalMemoryAccessorRegistry;
 import com.hazelcast.internal.nio.ClassLoaderUtil;
+import com.hazelcast.internal.nio.Packet;
 import com.hazelcast.internal.serialization.InputOutputFactory;
 import com.hazelcast.internal.serialization.InternalSerializationService;
 import com.hazelcast.internal.serialization.SerializationClassNameFilter;
@@ -42,6 +43,7 @@ import com.hazelcast.nio.serialization.Serializer;
 import com.hazelcast.nio.serialization.SerializerHook;
 import com.hazelcast.partition.PartitioningStrategy;
 import com.hazelcast.spi.properties.ClusterProperty;
+import com.hazelcast.spi.properties.HazelcastProperties;
 
 import java.nio.ByteOrder;
 import java.util.HashMap;
@@ -84,6 +86,7 @@ public class DefaultSerializationServiceBuilder implements SerializationServiceB
 
     protected SchemaService schemaService;
     protected boolean isCompatibility;
+    protected HazelcastProperties properties;
 
     @Override
     public SerializationServiceBuilder setVersion(byte version) {
@@ -124,9 +127,14 @@ public class DefaultSerializationServiceBuilder implements SerializationServiceB
         enableSharedObject = config.isEnableSharedObject();
         allowUnsafe = config.isAllowUnsafe();
         allowOverrideDefaultSerializers = config.isAllowOverrideDefaultSerializers();
-        JavaSerializationFilterConfig filterConfig = config.getJavaSerializationFilterConfig();
-        classNameSerializationFilter = filterConfig == null ? null : new SerializationClassNameFilter(filterConfig);
+        classNameSerializationFilter = new SerializationClassNameFilter(config.getJavaSerializationFilterConfig());
         compactSerializationConfig = config.getCompactSerializationConfig();
+        return this;
+    }
+
+    @Override
+    public SerializationServiceBuilder setProperties(HazelcastProperties properties) {
+        this.properties = properties;
         return this;
     }
 
@@ -232,6 +240,7 @@ public class DefaultSerializationServiceBuilder implements SerializationServiceB
     @Override
     public InternalSerializationService build() {
         initVersions();
+
         if (config != null) {
             addConfigDataSerializableFactories(dataSerializableFactories, config, classLoader);
             addConfigPortableFactories(portableFactories, config, classLoader);
@@ -307,6 +316,10 @@ public class DefaultSerializationServiceBuilder implements SerializationServiceB
                     .withCompactSerializationConfig(compactSerializationConfig)
                     .withSchemaService(schemaService)
                     .withCompatibility(isCompatibility)
+                    .withReflectiveCompactSerializationRestrictions(new ExtraReflectiveCompactSerializationRestrictions(
+                           null, null, createReflectiveCompactSerializerDefaultBlockList()
+                    ))
+                    .withProperties(properties)
                     .build();
                 serializationServiceV1.registerClassDefinitions(classDefinitions);
                 return serializationServiceV1;
@@ -315,6 +328,20 @@ public class DefaultSerializationServiceBuilder implements SerializationServiceB
             default:
                 throw new IllegalArgumentException("Serialization version is not supported!");
         }
+    }
+
+    protected ClassFilter createReflectiveCompactSerializerDefaultBlockList() {
+        ClassFilter blockList = new ClassFilter();
+        blockList.addPrefixes("com.hazelcast.shaded");
+        blockList.addPackages("org.jctools.queues");
+        blockList.addClasses(
+                HeapData.class.getName(),
+                Packet.class.getName(),
+                UnsafeObjectDataInput.class.getName(),
+                "com.hazelcast.kubernetes.KubernetesConfig$DefaultFileContentsReader",
+                "org.agrona.concurrent.status.AtomicCounter"
+        );
+        return blockList;
     }
 
     private void registerSerializerHooks(InternalSerializationService ss) {

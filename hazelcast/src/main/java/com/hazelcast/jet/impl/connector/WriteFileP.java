@@ -17,6 +17,8 @@
 package com.hazelcast.jet.impl.connector;
 
 import com.hazelcast.function.FunctionEx;
+import com.hazelcast.jet.core.ProcessorSupplier;
+import com.hazelcast.jet.impl.util.IOUtil;
 import com.hazelcast.security.impl.function.SecuredFunctions;
 import com.hazelcast.jet.RestartableException;
 import com.hazelcast.jet.config.ProcessingGuarantee;
@@ -128,6 +130,8 @@ public final class WriteFileP<T> implements Processor {
         this.context = context;
         Files.createDirectories(directory);
 
+        throwIfDateFormatterNotValid();
+
         ProcessingGuarantee guarantee = context.processingGuarantee() == EXACTLY_ONCE && !exactlyOnce
                 ? AT_LEAST_ONCE
                 : context.processingGuarantee();
@@ -214,9 +218,21 @@ public final class WriteFileP<T> implements Processor {
         utility.restoreFromSnapshot(inbox);
     }
 
+    private void throwIfDateFormatterNotValid() {
+        if (dateFormatter != null) {
+            try {
+                // ensure dateFormatter doesn't escape from directory.
+                IOUtil.resolveInDir(directory, currentTimeFormatted() + "-0");
+            } catch (IOException e) {
+                sneakyThrow(e);
+            }
+        }
+    }
+
     private FileId newFileName() {
         StringBuilder sb = new StringBuilder();
         if (dateFormatter != null) {
+            throwIfDateFormatterNotValid();
             lastFileDate = currentTimeFormatted();
             sb.append(lastFileDate);
             sb.append('-');

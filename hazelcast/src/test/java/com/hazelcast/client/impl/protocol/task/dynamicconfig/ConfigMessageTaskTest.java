@@ -30,6 +30,7 @@ import com.hazelcast.internal.nio.Connection;
 import com.hazelcast.internal.nio.ConnectionType;
 import com.hazelcast.internal.server.ServerConnection;
 import com.hazelcast.logging.Logger;
+import com.hazelcast.logging.LoggingService;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import com.hazelcast.spi.impl.InternalCompletableFuture;
 import com.hazelcast.spi.impl.NodeEngineImpl;
@@ -76,7 +77,7 @@ public abstract class ConfigMessageTaskTest {
 
         when(mockClientEngine.getEndpointManager()).thenReturn(mockClientEndpointManager);
         when(mockClientEngine.getExceptionFactory()).thenReturn(new ClientExceptionFactory(false,
-                new Config().getClassLoader()));
+                new Config().getClassLoader(), mock(LoggingService.class)));
         when(mockClientEngine.getManagementTasksChecker().isTrusted(any())).thenReturn(true);
 
         when(mockClientEndpoint.getClientType()).thenReturn(ConnectionType.JAVA_CLIENT);
