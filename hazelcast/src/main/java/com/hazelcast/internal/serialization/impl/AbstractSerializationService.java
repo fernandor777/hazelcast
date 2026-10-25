@@ -16,6 +16,7 @@
 
 package com.hazelcast.internal.serialization.impl;
 
+import com.hazelcast.config.ClassFilter;
 import com.hazelcast.config.CompactSerializationConfig;
 import com.hazelcast.core.ManagedContext;
 import com.hazelcast.internal.compatibility.serialization.impl.CompatibilitySerializationConstants;
@@ -49,6 +50,7 @@ import com.hazelcast.nio.serialization.Serializer;
 import com.hazelcast.partition.PartitioningStrategy;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.Externalizable;
 import java.io.Serializable;
 import java.nio.ByteOrder;
@@ -129,7 +131,7 @@ public abstract class AbstractSerializationService implements InternalSerializat
                 ? new CompactSerializationConfig() : builder.compactSerializationConfig;
         compactStreamSerializer = new CompactStreamSerializer(cls -> serializerForClass(cls, false).getClass(),
                 compactSerializationCfg, managedContext, builder.schemaService, classLoader,
-                builder.reflectiveCompactSerializationRestrictions);
+                builder.reflectiveCompactSerializationRestrictionsWithPropertyFilters());
         this.compactWithSchemaSerializerAdapter = new CompactWithSchemaStreamSerializerAdapter(compactStreamSerializer);
         this.compactSerializerAdapter = new CompactStreamSerializerAdapter(compactStreamSerializer);
     }
@@ -741,9 +743,10 @@ public abstract class AbstractSerializationService implements InternalSerializat
         private boolean allowOverrideDefaultSerializers;
         private CompactSerializationConfig compactSerializationConfig;
         private SchemaService schemaService;
+        private ClassFilter reflectiveCompactSerializationBlockList;
+        private ClassFilter reflectiveCompactSerializationAllowList;
         private ExtraReflectiveCompactSerializationRestrictions reflectiveCompactSerializationRestrictions
                 = ExtraReflectiveCompactSerializationRestrictions.NO_RESTRICTIONS;
-        private HazelcastProperties hazelcastProperties;
 
         protected Builder() {
         }
@@ -836,6 +839,31 @@ public abstract class AbstractSerializationService implements InternalSerializat
                 @Nonnull ExtraReflectiveCompactSerializationRestrictions restrictions) {
             this.reflectiveCompactSerializationRestrictions = Objects.requireNonNull(restrictions);
             return self();
+        }
+
+        public final T withReflectiveCompactSerializationBlocklist(@Nullable ClassFilter blockList) {
+            this.reflectiveCompactSerializationBlockList = blockList;
+            return self();
+        }
+
+        public final T withReflectiveCompactSerializationAllowlist(@Nullable ClassFilter allowList) {
+            this.reflectiveCompactSerializationAllowList = allowList;
+            return self();
+        }
+
+        private ExtraReflectiveCompactSerializationRestrictions reflectiveCompactSerializationRestrictionsWithPropertyFilters() {
+            ExtraReflectiveCompactSerializationRestrictions current = reflectiveCompactSerializationRestrictions;
+            return new ExtraReflectiveCompactSerializationRestrictions(
+                    union(current.propertyAllowList(), reflectiveCompactSerializationAllowList),
+                    union(current.propertyBlockList(), reflectiveCompactSerializationBlockList),
+                    current.defaultBlockList());
+        }
+
+        private static ClassFilter union(ClassFilter first, ClassFilter second) {
+            if (first == null) {
+                return second == null ? null : new ClassFilter(second);
+            }
+            return second == null ? new ClassFilter(first) : new ClassFilter(first).add(second);
         }
     }
 }

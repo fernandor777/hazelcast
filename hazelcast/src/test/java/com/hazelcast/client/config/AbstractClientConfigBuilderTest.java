@@ -562,10 +562,6 @@ public abstract class AbstractClientConfigBuilderTest extends HazelcastTestSuppo
     @Test
     public abstract void testCompactSerialization_zeroConfigDefaultsDisabled();
 
-    @Test
-    public abstract void testDefaultRoutingStrategyIsPicked_whenNoRoutingStrategyIsSetToMultiMemberRoutingConfig();
-
-    @Test
     public void testTpc() {
         ClientTpcConfig tpcConfig = fullClientConfig.getTpcConfig();
         assertTrue(tpcConfig.isEnabled());

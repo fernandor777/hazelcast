@@ -59,7 +59,7 @@ public class ReflectiveCompactSerializerTest {
         }
     }
 
-    InMemorySchemaService schemaService = new InMemorySchemaService();
+    SchemaService schemaService = CompactTestUtil.createInMemorySchemaService();
     ExampleDto obj = new ExampleDto(1, "aaa");
     byte[] serializedObj = serialize(obj, null, null);
 

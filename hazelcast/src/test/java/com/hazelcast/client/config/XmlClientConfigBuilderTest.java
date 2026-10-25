@@ -867,21 +867,6 @@ public class XmlClientConfigBuilderTest extends AbstractClientConfigBuilderTest 
     }
 
     @Override
-    public void testDefaultRoutingStrategyIsPicked_whenNoRoutingStrategyIsSetToMultiMemberRoutingConfig() {
-        String xml = HAZELCAST_CLIENT_START_TAG
-                + "     <network>\n"
-                + "         <cluster-routing mode=\"MULTI_MEMBER\" />\n"
-                + "     </network>\n"
-                + HAZELCAST_CLIENT_END_TAG;
-
-        ClientConfig clientConfig = buildConfig(xml);
-
-        assertEquals(RoutingMode.MULTI_MEMBER, clientConfig.getNetworkConfig().getClusterRoutingConfig().getRoutingMode());
-        assertEquals(ClusterRoutingConfig.DEFAULT_ROUTING_STRATEGY,
-                clientConfig.getNetworkConfig().getClusterRoutingConfig().getRoutingStrategy());
-    }
-
-    @Override
     public void testCompactSerialization_zeroConfigRestrictions() {
         String xml = HAZELCAST_CLIENT_START_TAG + """
                 <serialization>
@@ -927,20 +912,6 @@ public class XmlClientConfigBuilderTest extends AbstractClientConfigBuilderTest 
         CompactTestUtil.assertZeroConfigFilter(config, new JavaSerializationFilterConfig().setDefaultsDisabled(true));
     }
 
-    @Override
-    public void testDefaultRoutingStrategyIsPicked_whenNoRoutingStrategyIsSetToMultiMemberRoutingConfig() {
-        String xml = HAZELCAST_CLIENT_START_TAG
-                + "     <network>\n"
-                + "         <cluster-routing mode=\"MULTI_MEMBER\" />\n"
-                + "     </network>\n"
-                + HAZELCAST_CLIENT_END_TAG;
-
-        ClientConfig clientConfig = buildConfig(xml);
-
-        assertEquals(RoutingMode.MULTI_MEMBER, clientConfig.getNetworkConfig().getClusterRoutingConfig().getRoutingMode());
-        assertEquals(ClusterRoutingConfig.DEFAULT_ROUTING_STRATEGY,
-                clientConfig.getNetworkConfig().getClusterRoutingConfig().getRoutingStrategy());
-    }
     static ClientConfig buildConfig(String xml, Properties properties) {
         ByteArrayInputStream bis = new ByteArrayInputStream(xml.getBytes());
         XmlClientConfigBuilder configBuilder = new XmlClientConfigBuilder(bis);

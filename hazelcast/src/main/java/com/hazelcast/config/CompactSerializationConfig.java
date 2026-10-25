@@ -91,8 +91,8 @@ public class CompactSerializationConfig {
 
     /**
      * @return The current filter determining class eligibility for
-     * reflective compact serialization. A return value of null indicates
-     * all classes are eligible.
+     * reflective compact serialization. A return value of null indicates that
+     * no user filter is configured; Hazelcast's default restrictions still apply.
      * @since 5.7
      */
     @Beta
@@ -103,8 +103,8 @@ public class CompactSerializationConfig {
 
     /**
      * Set the filter determining class eligibility for reflective
-     * compact serialization. Setting the filter to null means all classes
-     * are eligible.
+     * compact serialization. Setting the filter to null removes user-defined
+     * restrictions; Hazelcast's default restrictions still apply.
      *
      * @param zeroConfigClassFilter The filter to set
      * @return configured {@link CompactSerializationConfig} for chaining
