@@ -6,7 +6,7 @@ This is a custom backport, not an official Hazelcast patch release.
 
 Backports completed so far: CVE-2026-107726, GHSA-rmqf-mh9c-3gr4,
 GHSA-w294-6q5q-53p8, GHSA-wxh9-6gx5-vrjg, GHSA-m4hm-fvgc-9qpm, and
-GHSA-jcpf-8phq-8mmj.
+GHSA-jcpf-8phq-8mmj, and GHSA-74r8-7r86-phxq.
 Other advisories below are not remediated on this branch. Remaining Jet path
 preparations are isolated in `/tmp/hz-security-paths` and are not integrated.
 
@@ -41,7 +41,7 @@ preparations are isolated in `/tmp/hz-security-paths` and are not integrated.
 | GHSA-jcpf-8phq-8mmj | 3d978c3b3c, 914b22f305, 960de839b7, 55f4a4a4f7, 525342c9eb, 64331b0f0e | 59087a168c, 08e33669a4, 8659284aa2, 3554a7c36d, dd622c2dee, f6ab3ff988; adaptation e8909c878a | Backported; focused validation passed |
 | GHSA-wxh9-6gx5-vrjg | 9646d046f5, 260c09e0ef, 1de94ba4b8, 02a3c5ac59, 12e0ebf476 | 0af3999447 | Backported; focused validation passed |
 | GHSA-rmqf-mh9c-3gr4 | bdc0f1bf38 | ee4046a1ac | Backported; focused validation passed |
-| GHSA-74r8-7r86-phxq | 3b07d56ee7, 14c64970f6; context checks 644560ce61, 7af6ddea7e, 2bb02d562c | Mapping inferred; regression evidence required | Unverified |
+| GHSA-74r8-7r86-phxq | 3b07d56ee7; Predicate policy hunk from 14c64970f6 | 50ba3b4423, 8c748e012a | Backported; focused validation passed |
 | GHSA-jpwr-2cr3-32fm | 1d3b4eee45, c5cc4b386c | Pending | Pending |
 | GHSA-m4hm-fvgc-9qpm | c5ec28ec3c | 1abf986a80; fixture cleanup ca8230527e | Backported; official advisory currently omits 5.4 from affected ranges |
 | GHSA-6hfv-j8jg-ggpx | Candidate 3b07d56ee7; same context-check batch | Exact advisory mapping unconfirmed | Unverified |
@@ -180,3 +180,20 @@ remain explicit; Enterprise-only and unverified items are not claimed fixed.
   `55f4a4a4f7` (default SQL filter), `525342c9eb` (resolved UDT name), and
   `64331b0f0e` (SQL-enabled check before parameter decoding). Backport commits
   begin at `59087a168c`; 5.4 test adaptation: `e8909c878a`.
+
+## GHSA-74r8-7r86-phxq implementation and checks
+
+- Extended the controlled reflective lookup policy to block Jet `Traverser`
+  and Jackson databind introspection classes, then added the Predicate API
+  block for `org.springframework.beans.*`. The latter is the Predicate
+  policy hunk from a larger upstream commit; unrelated SQL and compact
+  serialization hunks were not needed for this advisory.
+- Added negative tests for Traverser and Spring Beans, a positive
+  full-access-policy test, and adapted Jackson `MemberKey` to the 5.4
+  Jackson 2 package.
+- Focused `ReflectionHelperTest` passed: **29 tests, zero failures/errors
+  or skips**. Surefire report:
+  `/tmp/hz-predicate-api/hazelcast/target/surefire-reports/TEST-com.hazelcast.query.impl.getters.ReflectionHelperTest.xml`.
+- Upstream sources: `3b07d56ee70e5fc7767b6d6a3510a438dc0991e6` and the
+  Predicate policy hunk from `14c64970f64bc8cf608510ef7228bd0e18c70cf5`.
+  Backports: `50ba3b4423` and `8c748e012a`.
