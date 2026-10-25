@@ -4,7 +4,8 @@ Baseline: `6a0d8755870b20bd7cd1e6274c0dc2d251290342` on
 `backport/jet-cve-fixes-5.4`. Upstream reference: master `7e06448064`.
 This is a custom backport, not an official Hazelcast patch release.
 
-Backports completed so far: CVE-2026-107726 and GHSA-rmqf-mh9c-3gr4.
+Backports completed so far: CVE-2026-107726, GHSA-rmqf-mh9c-3gr4, and
+GHSA-w294-6q5q-53p8.
 Other advisories below are not remediated on this branch. Remaining Jet path
 preparations are isolated in `/tmp/hz-security-paths` and are not integrated.
 
@@ -35,7 +36,7 @@ preparations are isolated in `/tmp/hz-security-paths` and are not integrated.
 | Advisory | Source commits / batch | Backport and evidence | Status |
 | --- | --- | --- | --- |
 | CVE-2026-107726 | 17e7422009, 361979da12, d76c6a6b65, 35befe6ef3 | fa31b943cd, 25ebe096e6, 0ca0941602, dfd9673240; adaptations 787a9b73b5, 4cf9311831 | Backported; validation below |
-| GHSA-w294-6q5q-53p8 | c8a4cd9823, 715446f4fc, 3e452c98f0, a9fa45b765 | Pending | Pending |
+| GHSA-w294-6q5q-53p8 | c8a4cd9823, 715446f4fc, 3e452c98f0, a9fa45b765 | 5257a32136, 49569ff9ea, c5a22009d1, 47d7564c0c; adaptation edb3b44376 | Backported; focused validation passed |
 | GHSA-jcpf-8phq-8mmj | 3d978c3b3c, 914b22f305, 960de839b7, 55f4a4a4f7, 525342c9eb, 64331b0f0e | Pending | Pending |
 | GHSA-wxh9-6gx5-vrjg | 9646d046f5, 260c09e0ef, 1de94ba4b8, 02a3c5ac59, 12e0ebf476 | Pending | Pending |
 | GHSA-rmqf-mh9c-3gr4 | bdc0f1bf38 | ee4046a1ac | Backported; focused validation passed |
@@ -99,3 +100,22 @@ remain explicit; Enterprise-only and unverified items are not claimed fixed.
   `/tmp/hz-security-errors/hazelcast/target/surefire-reports/`.
 - Upstream source: `bdc0f1bf38318c82b542a1aeb9e573efc77855e2`; backport:
   `ee4046a1ac`.
+
+## GHSA-w294-6q5q-53p8 implementation and checks
+
+- Added a configurable reflective attribute lookup policy with controlled
+  access as the default, including blocks for sensitive classes and static or
+  void accessors. Added URL to the default blocklist, wrapped policy failures
+  as `QueryException`, and verified array component classes.
+- Added HazelcastProperties plumbing required to select the policy while
+  preserving the 5.4 direct serialization allowlist/blocklist hooks and
+  secure default ReflectionHelper overloads. Removed unused builder methods
+  that exist only in newer Hazelcast versions.
+- Core reactor `test-compile` passed. Focused reflection, policy, extractor,
+  predicate, and projection tests passed: **157 tests, zero failures/errors
+  or skips**. Logs: `/tmp/hz-security-predicate-compile.log` and
+  `/tmp/hz-security-predicate-tests.log`.
+- Upstream commits: `c8a4cd982369d564788028370b7ed0d64b366eb8`,
+  `715446f4fc03257e3878aea29ee58f8ea4b82808`,
+  `3e452c98f00a99bc870fdae4a6b381edab491761`, and
+  `a9fa45b765111164495b201038eaca38bb777399`.
