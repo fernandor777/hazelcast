@@ -5,7 +5,7 @@ Baseline: `6a0d8755870b20bd7cd1e6274c0dc2d251290342` on
 This is a custom backport, not an official Hazelcast patch release.
 
 Backports completed so far: CVE-2026-107726, GHSA-rmqf-mh9c-3gr4,
-GHSA-w294-6q5q-53p8, GHSA-wxh9-6gx5-vrjg, GHSA-m4hm-fvgc-9qpm, and
+GHSA-w294-6q5q-53p8, GHSA-wxh9-6gx5-vrjg, GHSA-m4hm-fvgc-9qpm,
 GHSA-jcpf-8phq-8mmj, GHSA-74r8-7r86-phxq, GHSA-jpwr-2cr3-32fm, and
 GHSA-6hfv-j8jg-ggpx.
 Other advisories below are not remediated on this branch.
@@ -43,7 +43,7 @@ Other advisories below are not remediated on this branch.
 | GHSA-rmqf-mh9c-3gr4 | bdc0f1bf38 | ee4046a1ac | Backported; focused validation passed |
 | GHSA-74r8-7r86-phxq | 3b07d56ee7; Predicate policy hunk from 14c64970f6 | 50ba3b4423, 8c748e012a | Backported; focused validation passed |
 | GHSA-jpwr-2cr3-32fm | 1d3b4eee45, c5cc4b386c | 87cb15f82c, 0148d3a060 | Backported; focused validation passed |
-| GHSA-m4hm-fvgc-9qpm | c5ec28ec3c | 1abf986a80; fixture cleanup ca8230527e | Backported; official advisory currently omits 5.4 from affected ranges |
+| GHSA-m4hm-fvgc-9qpm | c5ec28ec3c | 1abf986a80; fixture cleanup ca8230527e | Backported; advisory lists <5.5.10 as affected but no 5.4 fixed release |
 | GHSA-6hfv-j8jg-ggpx | 3b07d56ee7 (CTT-1201 Traverser block) | Existing backport 50ba3b4423; direct fixture regression and positive POJO query added | Covered; focused validation passed |
 | GHSA-p2qm-f9x7-x488 | Enterprise declarative pipeline | Implementation absent from Community repository | External |
 
@@ -159,9 +159,8 @@ remain explicit; Enterprise-only and unverified items are not claimed fixed.
   **8 tests, zero failures/errors**. Logs: `/tmp/hz-security-h2-compile.log`,
   `/tmp/hz-security-h2-tests.log`, and `/tmp/hz-security-h2-sql-tests.log`.
 - Upstream source: `c5ec28ec3cddc529f7e47e3a3184db083a59cf0d`; backport:
-  `1abf986a80`. The GitHub advisory's current affected-version list starts
-  below 5.5.10 and does not list 5.4; this branch carries the requested 5.4
-  hardening based on the shared H2 gadget path.
+  `1abf986a80`. The GitHub advisory lists `<5.5.10` as affected, which
+  includes 5.4, but does not list a fixed 5.4 release.
 
 ## GHSA-jcpf-8phq-8mmj implementation and checks
 
