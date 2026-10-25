@@ -5,7 +5,7 @@ Baseline: `6a0d8755870b20bd7cd1e6274c0dc2d251290342` on
 This is a custom backport, not an official Hazelcast patch release.
 
 Backports completed so far: CVE-2026-107726, GHSA-rmqf-mh9c-3gr4,
-GHSA-w294-6q5q-53p8, and GHSA-wxh9-6gx5-vrjg.
+GHSA-w294-6q5q-53p8, GHSA-wxh9-6gx5-vrjg, and GHSA-m4hm-fvgc-9qpm.
 Other advisories below are not remediated on this branch. Remaining Jet path
 preparations are isolated in `/tmp/hz-security-paths` and are not integrated.
 
@@ -42,7 +42,7 @@ preparations are isolated in `/tmp/hz-security-paths` and are not integrated.
 | GHSA-rmqf-mh9c-3gr4 | bdc0f1bf38 | ee4046a1ac | Backported; focused validation passed |
 | GHSA-74r8-7r86-phxq | 3b07d56ee7, 14c64970f6; context checks 644560ce61, 7af6ddea7e, 2bb02d562c | Mapping inferred; regression evidence required | Unverified |
 | GHSA-jpwr-2cr3-32fm | 1d3b4eee45, c5cc4b386c | Pending | Pending |
-| GHSA-m4hm-fvgc-9qpm | c5ec28ec3c | Pending | Pending |
+| GHSA-m4hm-fvgc-9qpm | c5ec28ec3c | 1abf986a80; fixture cleanup ca8230527e | Backported; official advisory currently omits 5.4 from affected ranges |
 | GHSA-6hfv-j8jg-ggpx | Candidate 3b07d56ee7; same context-check batch | Exact advisory mapping unconfirmed | Unverified |
 | GHSA-p2qm-f9x7-x488 | Enterprise declarative pipeline | Implementation absent from Community repository | External |
 
@@ -142,3 +142,22 @@ remain explicit; Enterprise-only and unverified items are not claimed fixed.
   `1de94ba4b8c9e8f319afc3377b08744118acb6fb`,
   `02a3c5ac5960edea15042dfc184b41f877875ff3`, and
   `12e0ebf476e765394730c251e5d291d20c6ce90c`. Backport: `0af3999447`.
+
+## GHSA-m4hm-fvgc-9qpm implementation and checks
+
+- Activated Java serialization filtering when no explicit filter config is
+  supplied. The default blacklist rejects `org.h2.*`,
+  `org.springframework.beans.*`, and Jackson databind introspection classes;
+  the existing `defaultsDisabled` setting remains the opt-out. The common
+  serialization builder wires the filter into member and client services.
+- Added member/client H2 deserialization regressions and retained the benign
+  class round-trip. The existing H2 JDBC SQL connector test opts out because
+  it uses H2 classes for its connector test path.
+- Core compile/test-compile passed. Focused H2 and filter tests passed:
+  **12 tests, zero failures/errors**. `InsertJdbcSqlConnectorTest` passed:
+  **8 tests, zero failures/errors**. Logs: `/tmp/hz-security-h2-compile.log`,
+  `/tmp/hz-security-h2-tests.log`, and `/tmp/hz-security-h2-sql-tests.log`.
+- Upstream source: `c5ec28ec3cddc529f7e47e3a3184db083a59cf0d`; backport:
+  `1abf986a80`. The GitHub advisory's current affected-version list starts
+  below 5.5.10 and does not list 5.4; this branch carries the requested 5.4
+  hardening based on the shared H2 gadget path.
