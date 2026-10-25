@@ -19,6 +19,7 @@ package com.hazelcast.jet.json;
 import com.fasterxml.jackson.jr.annotationsupport.JacksonAnnotationExtension;
 import com.fasterxml.jackson.jr.ob.JSON;
 import com.hazelcast.core.HazelcastJsonValue;
+import com.hazelcast.jet.json.impl.JacksonJrFilteringExtension;
 import com.hazelcast.jet.pipeline.Sources;
 
 import javax.annotation.Nonnull;
@@ -57,6 +58,7 @@ public final class JsonUtil {
 
     static {
         JSON.Builder builder = JSON.builder();
+        builder.register(new JacksonJrFilteringExtension());
         try {
             Class.forName("com.fasterxml.jackson.annotation.JacksonAnnotation", false, JsonUtil.class.getClassLoader());
             builder.register(JacksonAnnotationExtension.std);
