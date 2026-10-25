@@ -55,6 +55,98 @@ adaptations and omitted hunks. Shared commits are applied once. Never infer
 complete remediation from commit titles alone. Environment-blocked checks must
 remain explicit; Enterprise-only and unverified items are not claimed fixed.
 
+## Dependency CVE subtasks
+
+The user-provided dependency inventory contains 45 unique CVEs, while the
+[MVNRepository page for Hazelcast 5.4.0](https://mvnrepository.com/artifact/com.hazelcast/hazelcast/5.4.0)
+reported 40 dependency findings when reviewed on 2026-10-24. Reconcile that
+five-finding count difference with the scanner/export that produced the list.
+The entries below track each supplied CVE individually and give a consolidated
+upgrade target per library family.
+
+### Scope and triage notes
+
+- The source POM declares `tomcat-embed-core:10.1.19`, AssertJ `3.25.3`,
+  PostgreSQL JDBC `42.7.2`, and Microsoft JDBC `12.6.1.jre11` in test scope.
+  These do not establish a vulnerability in the published Hazelcast runtime
+  dependency graph; confirm the resolved artifact/SBOM before treating them as
+  production exposure.
+- Log4j API/Core are provided and optional in the Hazelcast module; Log4j Core
+  is also used in tests. Confirm whether the affected Log4j jars are present in
+  the Hazelcast distribution or the deployment's runtime classpath.
+- JLine reader/terminal are provided and optional. The POM comment says they
+  are packaged in the server distribution, so verify the actual packaged jar
+  and prioritize that distribution path.
+- Recommended versions are upstream fixed/current versions for the associated
+  dependency line, not Hazelcast release versions. Upstream guidance checked:
+  [Tomcat 10.1 security fixes](https://tomcat.apache.org/security-10.html),
+  [Log4j security advisories](https://logging.apache.org/security.html),
+  [JLine 3.30.15 release](https://github.com/jline/jline3/releases/tag/jline-3.30.15),
+  [pgjdbc advisory](https://github.com/pgjdbc/pgjdbc/security/advisories/GHSA-98qh-xjc8-98pq),
+  [Microsoft JDBC release notes](https://learn.microsoft.com/en-us/sql/connect/jdbc/release-notes-for-the-jdbc-driver?view=sql-server-ver17),
+  and [NVD CVE-2026-24400](https://nvd.nist.gov/vuln/detail/CVE-2026-24400).
+- Status for all rows: **Open** — resolve artifact/scope applicability first;
+  if present in a shipped/runtime classpath, apply or backport the vendor fix,
+  then verify the dependency inventory and regression coverage. Do not mark a
+  CVE fixed solely because a test-only dependency was updated.
+
+| Subtask | CVE | Library / impact | Recommended dependency version | Current repo evidence and follow-up |
+| --- | --- | --- | --- | --- |
+| [ ] | CVE-2026-77420 | JLine — history regex denial of service | `org.jline` 3.30.15 or later on 3.x | POM 3.25.1, provided/optional; verify server-distribution jar and upgrade if bundled. |
+| [ ] | CVE-2026-68525 | Apache Tomcat — FORM auth redirect may bypass POST-only access constraint | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+| [ ] | CVE-2026-65905 | Apache Tomcat — one DIGEST-authenticated request can be replayed within the nonce window | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+| [ ] | CVE-2026-65182 | Apache Tomcat — constraint ordering can bypass a more restrictive path rule | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+| [ ] | CVE-2026-49844 | Apache Log4j — malformed JSON for non-finite values | `org.apache.logging.log4j` 2.26.1 or later | Provided/optional and test use; check distribution/runtime jars. |
+| [ ] | CVE-2026-43515 | Apache Tomcat — security constraint bypass | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+| [ ] | CVE-2026-43514 | Apache Tomcat — non-constant-time AJP secret comparison enables local-network timing attack | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+| [ ] | CVE-2026-43513 | Apache Tomcat — case-sensitive LockOutRealm user matching weakens brute-force lockout | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+| [ ] | CVE-2026-43512 | Apache Tomcat — DIGEST auth accepts unknown user with password `null` | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+| [ ] | CVE-2026-42498 | Apache Tomcat — WebSocket client sends auth header to redirect target | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+| [ ] | CVE-2026-42198 | PostgreSQL JDBC — SCRAM authentication CPU exhaustion | `org.postgresql:postgresql` 42.7.11 or later | POM 42.7.2, test scope; upgrade test/deployment copies as applicable. |
+| [ ] | CVE-2026-41293 | Apache Tomcat — invalid HTTP/2 request headers reach Servlet APIs | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+| [ ] | CVE-2026-41284 | Apache Tomcat — unbounded unauthenticated WebDAV LOCK/PROPFIND request bodies | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+| [ ] | CVE-2026-34487 | Apache Tomcat — Kubernetes bearer token may be written to cloud-membership logs | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph and cloud membership use. |
+| [ ] | CVE-2026-34483 | Apache Tomcat — JSON access-log injection with relaxed path/query characters | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+| [ ] | CVE-2026-34480 | Apache Log4j Core — malformed XML layout output | `org.apache.logging.log4j` 2.26.1 or later | Provided/optional and test use; check distribution/runtime jars. |
+| [ ] | CVE-2026-34478 | Apache Log4j Core — RFC 5424 layout CRLF injection | `org.apache.logging.log4j` 2.26.1 or later | Provided/optional and test use; check distribution/runtime jars. |
+| [ ] | CVE-2026-34477 | Apache Log4j Core — TLS hostname verification bypass | `org.apache.logging.log4j` 2.26.1 or later | Provided/optional and test use; check distribution/runtime jars. |
+| [ ] | CVE-2026-29145 | Apache Tomcat — client-certificate OCSP checks may soft-fail despite strict setting | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+| [ ] | CVE-2026-25854 | Apache Tomcat — LoadBalancerDrainingValve can issue attacker-controlled redirect | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph and valve use. |
+| [ ] | CVE-2026-24880 | Apache Tomcat — invalid chunk extensions can enable proxy/backend request smuggling | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+| [ ] | CVE-2026-24734 | Apache Tomcat / Tomcat Native — OCSP revocation bypass | Tomcat 10.1.61+; Native 1.3.5+ or 2.0.12+ if used | Tomcat is test scope; verify whether Tomcat Native is present in any shipped image. |
+| [ ] | CVE-2026-24733 | Apache Tomcat — HTTP/0.9 security constraint bypass | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+| [ ] | CVE-2026-24400 | AssertJ — XML external entity processing | `org.assertj:assertj-core` 3.27.7 or later | POM 3.25.3, test scope; check build/test exposure only. |
+| [ ] | CVE-2025-68161 | Apache Log4j Core — SocketAppender TLS hostname verification | `org.apache.logging.log4j` 2.26.1 or later | Provided/optional and test use; check distribution/runtime jars. |
+| [ ] | CVE-2025-66614 | Apache Tomcat — client certificate authentication bypass | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+| [ ] | CVE-2025-61795 | Apache Tomcat — multipart upload temporary files may exhaust disk before GC cleanup | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+| [ ] | CVE-2025-59250 | Microsoft SQL Server JDBC — spoofing via input validation | `com.microsoft.sqlserver:mssql-jdbc` 12.6.5.jre11 or later | POM 12.6.1.jre11, test scope; update test/deployment copies as applicable. |
+| [ ] | CVE-2025-55754 | Apache Tomcat — ANSI escape sequences in console logs can manipulate terminal/clipboard | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+| [ ] | CVE-2025-55752 | Apache Tomcat — Rewrite Valve path traversal can bypass constraints; RCE if PUT is enabled | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph and rewrite/PUT configuration. |
+| [ ] | CVE-2025-55668 | Apache Tomcat — Rewrite Valve can enable session fixation | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph and Rewrite Valve use. |
+| [ ] | CVE-2025-53506 | Apache Tomcat — HTTP/2 stream resource exhaustion can cause denial of service | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+| [ ] | CVE-2025-52520 | Apache Tomcat — multipart upload size-limit integer overflow can cause denial of service | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+| [ ] | CVE-2025-49125 | Apache Tomcat — PreResources/PostResources alternate-path security constraint bypass | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+| [ ] | CVE-2025-49124 | Apache Tomcat — Windows installer executable side-loading | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; check whether installer is distributed/used. |
+| [ ] | CVE-2025-48989 | Apache Tomcat — HTTP/2 reset-stream attack can exhaust memory | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+| [ ] | CVE-2025-48988 | Apache Tomcat — excessive multipart parts can exhaust memory | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+| [ ] | CVE-2025-46701 | Apache Tomcat — CGI servlet security constraint bypass on case-insensitive filesystems | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph and CGI servlet use. |
+| [ ] | CVE-2025-31651 | Apache Tomcat — Rewrite Valve rules may be bypassed for some configurations | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph and Rewrite Valve use. |
+| [ ] | CVE-2025-31650 | Apache Tomcat — invalid HTTP priority headers can leak memory and cause denial of service | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+| [ ] | CVE-2025-24813 | Apache Tomcat — partial PUT temporary-file path issue; conditional information disclosure or RCE | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; check write-enabled Default Servlet configuration if Tomcat is used. |
+| [ ] | CVE-2024-56337 | Apache Tomcat — incomplete mitigation for write-enabled Default Servlet RCE | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; Tomcat 10.1.34+ plus Java-specific property guidance if applicable. |
+| [ ] | CVE-2024-50379 | Apache Tomcat — JSP compilation TOCTOU can execute uploaded JSP on case-insensitive filesystems | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; check write-enabled Default Servlet configuration if Tomcat is used. |
+| [ ] | CVE-2024-38286 | Apache Tomcat — TLS handshake abuse can cause OutOfMemoryError | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+| [ ] | CVE-2024-34750 | Apache Tomcat — excessive HTTP/2 headers can leave connections open and cause denial of service | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
+
+### Completion criteria
+
+For each row, record the resolved coordinates/version and scope from the 5.4.0
+published POM, distribution contents, and deployment SBOM; compare against the
+vendor's affected ranges; then mark **Not applicable** with evidence, or record
+the upgrade/backport commit and verification evidence. Do not group away CVE
+IDs when reporting completion. The declarative-pipeline finding remains
+Enterprise-only and is tracked separately in the direct advisory ledger.
+
 ## CVE-2026-107726 implementation and checks
 
 - Preserved configurable Zero Config Compact serialization restrictions,
