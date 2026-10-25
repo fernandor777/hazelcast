@@ -68,6 +68,8 @@ public abstract class ConfigMessageTaskTest {
         NodeExtension mockNodeExtension = mock(NodeExtension.class);
         ClusterWideConfigurationService mockConfigurationService = mock(ClusterWideConfigurationService.class);
         InternalCompletableFuture<Object> mockFuture = mock(InternalCompletableFuture.class);
+        ClientExceptionFactory clientExceptionFactory = new ClientExceptionFactory(false,
+                new Config().getClassLoader(), mock(LoggingService.class));
 
         when(mockNode.getClientEngine()).thenReturn(mockClientEngine);
         when(mockNode.getConfig()).thenReturn(new Config());
@@ -76,8 +78,7 @@ public abstract class ConfigMessageTaskTest {
         when(mockNode.getNodeEngine()).thenReturn(mockNodeEngineImpl);
 
         when(mockClientEngine.getEndpointManager()).thenReturn(mockClientEndpointManager);
-        when(mockClientEngine.getExceptionFactory()).thenReturn(new ClientExceptionFactory(false,
-                new Config().getClassLoader(), mock(LoggingService.class)));
+        when(mockClientEngine.getExceptionFactory()).thenReturn(clientExceptionFactory);
         when(mockClientEngine.getManagementTasksChecker().isTrusted(any())).thenReturn(true);
 
         when(mockClientEndpoint.getClientType()).thenReturn(ConnectionType.JAVA_CLIENT);
