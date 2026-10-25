@@ -24,6 +24,7 @@ import com.hazelcast.shaded.org.somepackage.SomeShadedClass;
 import com.hazelcast.sql.SqlService;
 import com.hazelcast.sql.impl.expression.RowValue;
 import com.hazelcast.test.HazelcastSerialClassRunner;
+import org.assertj.core.api.ThrowableAssert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
