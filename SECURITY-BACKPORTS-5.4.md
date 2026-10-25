@@ -4,8 +4,8 @@ Baseline: `6a0d8755870b20bd7cd1e6274c0dc2d251290342` on
 `backport/jet-cve-fixes-5.4`. Upstream reference: master `7e06448064`.
 This is a custom backport, not an official Hazelcast patch release.
 
-Backports completed so far: CVE-2026-107726, GHSA-rmqf-mh9c-3gr4, and
-GHSA-w294-6q5q-53p8.
+Backports completed so far: CVE-2026-107726, GHSA-rmqf-mh9c-3gr4,
+GHSA-w294-6q5q-53p8, and GHSA-wxh9-6gx5-vrjg.
 Other advisories below are not remediated on this branch. Remaining Jet path
 preparations are isolated in `/tmp/hz-security-paths` and are not integrated.
 
@@ -38,7 +38,7 @@ preparations are isolated in `/tmp/hz-security-paths` and are not integrated.
 | CVE-2026-107726 | 17e7422009, 361979da12, d76c6a6b65, 35befe6ef3 | fa31b943cd, 25ebe096e6, 0ca0941602, dfd9673240; adaptations 787a9b73b5, 4cf9311831 | Backported; validation below |
 | GHSA-w294-6q5q-53p8 | c8a4cd9823, 715446f4fc, 3e452c98f0, a9fa45b765 | 5257a32136, 49569ff9ea, c5a22009d1, 47d7564c0c; adaptation edb3b44376 | Backported; focused validation passed |
 | GHSA-jcpf-8phq-8mmj | 3d978c3b3c, 914b22f305, 960de839b7, 55f4a4a4f7, 525342c9eb, 64331b0f0e | Pending | Pending |
-| GHSA-wxh9-6gx5-vrjg | 9646d046f5, 260c09e0ef, 1de94ba4b8, 02a3c5ac59, 12e0ebf476 | Pending | Pending |
+| GHSA-wxh9-6gx5-vrjg | 9646d046f5, 260c09e0ef, 1de94ba4b8, 02a3c5ac59, 12e0ebf476 | 0af3999447 | Backported; focused validation passed |
 | GHSA-rmqf-mh9c-3gr4 | bdc0f1bf38 | ee4046a1ac | Backported; focused validation passed |
 | GHSA-74r8-7r86-phxq | 3b07d56ee7, 14c64970f6; context checks 644560ce61, 7af6ddea7e, 2bb02d562c | Mapping inferred; regression evidence required | Unverified |
 | GHSA-jpwr-2cr3-32fm | 1d3b4eee45, c5cc4b386c | Pending | Pending |
@@ -119,3 +119,26 @@ remain explicit; Enterprise-only and unverified items are not claimed fixed.
   `715446f4fc03257e3878aea29ee58f8ea4b82808`,
   `3e452c98f00a99bc870fdae4a6b381edab491761`, and
   `a9fa45b765111164495b201038eaca38bb777399`.
+
+## GHSA-wxh9-6gx5-vrjg implementation and checks
+
+- Added the Jackson Jr reader/writer class-filter extension. The default
+  blocklist rejects Hazelcast internal/configuration and Spring context/beans
+  types plus all `DataSource` implementations during JSON reads and writes.
+  The existing system property remains the explicit opt-out.
+- Adapted Jackson Jr 3 extension APIs to the branch's Jackson Jr 2.14.2 API
+  without changing dependency versions. Removed the built-in serializable
+  MongoDB and Hadoop mapper closures; explicit Mongo mapping functions remain
+  supported. No public 5.7-only helper API was added.
+- JSON security and existing `JsonUtil` tests passed: **31 tests, zero
+  failures/errors**. Mongo mapper tests passed: **2 tests, zero
+  failures/errors**. Offline MongoDB/Hadoop reactor test compilation and a
+  final Hadoop/core compile passed.
+- The upstream Mongo change removes serializable built-in mapper closures;
+  it does not add a separate BSON class blocklist. BSON POJO decoding remains
+  explicit through the configured Mongo codec.
+- Source commits: `9646d046f59eab323cd30d7db0a7238cdcd1bd8d`,
+  `260c09e0ef175d1fce1039032c2db3743eaa1f14`,
+  `1de94ba4b8c9e8f319afc3377b08744118acb6fb`,
+  `02a3c5ac5960edea15042dfc184b41f877875ff3`, and
+  `12e0ebf476e765394730c251e5d291d20c6ce90c`. Backport: `0af3999447`.
