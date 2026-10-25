@@ -17,7 +17,6 @@
 package com.hazelcast.jet.impl.connector;
 
 import com.hazelcast.function.FunctionEx;
-import com.hazelcast.jet.core.ProcessorSupplier;
 import com.hazelcast.jet.impl.util.IOUtil;
 import com.hazelcast.security.impl.function.SecuredFunctions;
 import com.hazelcast.jet.RestartableException;
