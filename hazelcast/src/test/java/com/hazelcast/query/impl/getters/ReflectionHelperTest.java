@@ -16,7 +16,9 @@
 
 package com.hazelcast.query.impl.getters;
 
+import com.fasterxml.jackson.databind.introspect.MemberKey;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.jet.Traverser;
 import com.hazelcast.query.QueryException;
 import com.hazelcast.query.ReflectiveAttributeTestObject;
 import com.hazelcast.query.impl.getters.policy.DefaultReflectiveAttributeLookupPolicy;
@@ -29,7 +31,7 @@ import com.hazelcast.test.annotation.QuickTest;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
-import tools.jackson.databind.introspect.MemberKey;
+import org.springframework.beans.testutils.BeanWrapperTestObject;
 
 import static com.hazelcast.internal.util.RootCauseMatcher.rootCause;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -226,6 +228,23 @@ public class ReflectionHelperTest {
                 DefaultReflectiveAttributeLookupPolicy.INSTANCE))
                 .isInstanceOf(QueryException.class)
                 .hasMessageContaining(ReflectiveAttributeLookupException.POLICY_HINT);
+    }
+
+    @Test
+    public void extractValue_whenTraverserBlockedClass_thenThrowException() {
+        Traverser<String> traverser = () -> "value";
+        assertRestrictedLookupFailure(traverser, "this");
+    }
+
+    @Test
+    public void extractValue_whenSpringBeansBlockedClass_thenThrowException() {
+        assertRestrictedLookupFailure(new BeanWrapperTestObject(), "value");
+    }
+
+    @Test
+    public void extractValue_whenSpringBeansBlockedClass_thenFullAccessStillWorks() throws Exception {
+        assertThat(extractValue(new BeanWrapperTestObject(), "value", true,
+                FullAccessReflectiveAttributeLookupPolicy.INSTANCE)).isEqualTo("safe");
     }
 
     @SuppressWarnings("unused")
