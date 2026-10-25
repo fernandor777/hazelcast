@@ -72,8 +72,8 @@ upgrade target per library family.
   dependency graph; confirm the resolved artifact/SBOM before treating them as
   production exposure.
 - Log4j API/Core are provided and optional in the Hazelcast module; Log4j Core
-  is also used in tests. Confirm whether the affected Log4j jars are present in
-  the Hazelcast distribution or the deployment's runtime classpath.
+  is also used in tests. The distribution packages Log4j Core and JSON Template
+  Layout, so those artifacts are part of the shipped runtime.
 - JLine reader/terminal are provided and optional. The POM comment says they
   are packaged in the server distribution, so verify the actual packaged jar
   and prioritize that distribution path.
@@ -96,7 +96,8 @@ upgrade target per library family.
 | [ ] | CVE-2026-68525 | Apache Tomcat — FORM auth redirect may bypass POST-only access constraint | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
 | [ ] | CVE-2026-65905 | Apache Tomcat — one DIGEST-authenticated request can be replayed within the nonce window | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
 | [ ] | CVE-2026-65182 | Apache Tomcat — constraint ordering can bypass a more restrictive path rule | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
-| [ ] | CVE-2026-49844 | Apache Log4j — malformed JSON for non-finite values | `org.apache.logging.log4j` 2.26.1 or later | Provided/optional and test use; check distribution/runtime jars. |
+| [x] | CVE-2026-49844 | Apache Log4j API — malformed JSON for non-finite values | `org.apache.logging.log4j` 2.26.1 | Fixed by upgrading the managed Log4j BOM to 2.26.1; Hazelcast distribution packages Log4j. |
+| [x] | CVE-2026-34481 | Apache Log4j JSON Template Layout — malformed JSON for non-finite values | `org.apache.logging.log4j` 2.25.4 or later | Additional applicable advisory found during review; distribution includes the affected layout, fixed by BOM 2.26.1. |
 | [ ] | CVE-2026-43515 | Apache Tomcat — security constraint bypass | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
 | [ ] | CVE-2026-43514 | Apache Tomcat — non-constant-time AJP secret comparison enables local-network timing attack | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
 | [ ] | CVE-2026-43513 | Apache Tomcat — case-sensitive LockOutRealm user matching weakens brute-force lockout | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
@@ -107,16 +108,16 @@ upgrade target per library family.
 | [ ] | CVE-2026-41284 | Apache Tomcat — unbounded unauthenticated WebDAV LOCK/PROPFIND request bodies | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
 | [ ] | CVE-2026-34487 | Apache Tomcat — Kubernetes bearer token may be written to cloud-membership logs | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph and cloud membership use. |
 | [ ] | CVE-2026-34483 | Apache Tomcat — JSON access-log injection with relaxed path/query characters | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
-| [ ] | CVE-2026-34480 | Apache Log4j Core — malformed XML layout output | `org.apache.logging.log4j` 2.26.1 or later | Provided/optional and test use; check distribution/runtime jars. |
-| [ ] | CVE-2026-34478 | Apache Log4j Core — RFC 5424 layout CRLF injection | `org.apache.logging.log4j` 2.26.1 or later | Provided/optional and test use; check distribution/runtime jars. |
-| [ ] | CVE-2026-34477 | Apache Log4j Core — TLS hostname verification bypass | `org.apache.logging.log4j` 2.26.1 or later | Provided/optional and test use; check distribution/runtime jars. |
+| [x] | CVE-2026-34480 | Apache Log4j Core — malformed XML layout output | `org.apache.logging.log4j` 2.26.1 | Fixed by upgrading the managed Log4j BOM to 2.26.1; Hazelcast distribution packages Log4j. |
+| [x] | CVE-2026-34478 | Apache Log4j Core — RFC 5424 layout CRLF injection | `org.apache.logging.log4j` 2.26.1 | Fixed by upgrading the managed Log4j BOM to 2.26.1; Hazelcast distribution packages Log4j. |
+| [x] | CVE-2026-34477 | Apache Log4j Core — TLS hostname verification bypass | `org.apache.logging.log4j` 2.26.1 | Fixed by upgrading the managed Log4j BOM to 2.26.1; Hazelcast distribution packages Log4j. |
 | [ ] | CVE-2026-29145 | Apache Tomcat — client-certificate OCSP checks may soft-fail despite strict setting | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
 | [ ] | CVE-2026-25854 | Apache Tomcat — LoadBalancerDrainingValve can issue attacker-controlled redirect | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph and valve use. |
 | [ ] | CVE-2026-24880 | Apache Tomcat — invalid chunk extensions can enable proxy/backend request smuggling | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
 | [ ] | CVE-2026-24734 | Apache Tomcat / Tomcat Native — OCSP revocation bypass | Tomcat 10.1.61+; Native 1.3.5+ or 2.0.12+ if used | Tomcat is test scope; verify whether Tomcat Native is present in any shipped image. |
 | [ ] | CVE-2026-24733 | Apache Tomcat — HTTP/0.9 security constraint bypass | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
 | [ ] | CVE-2026-24400 | AssertJ — XML external entity processing | `org.assertj:assertj-core` 3.27.7 or later | POM 3.25.3, test scope; check build/test exposure only. |
-| [ ] | CVE-2025-68161 | Apache Log4j Core — SocketAppender TLS hostname verification | `org.apache.logging.log4j` 2.26.1 or later | Provided/optional and test use; check distribution/runtime jars. |
+| [x] | CVE-2025-68161 | Apache Log4j Core — SocketAppender TLS hostname verification | `org.apache.logging.log4j` 2.26.1 | Fixed by upgrading the managed Log4j BOM to 2.26.1; Hazelcast distribution packages Log4j. |
 | [ ] | CVE-2025-66614 | Apache Tomcat — client certificate authentication bypass | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
 | [ ] | CVE-2025-61795 | Apache Tomcat — multipart upload temporary files may exhaust disk before GC cleanup | `tomcat-embed-*` 10.1.61 or later | POM 10.1.19, test scope; confirm runtime graph before remediation. |
 | [ ] | CVE-2025-59250 | Microsoft SQL Server JDBC — spoofing via input validation | `com.microsoft.sqlserver:mssql-jdbc` 12.6.5.jre11 or later | POM 12.6.1.jre11, test scope; update test/deployment copies as applicable. |
@@ -320,7 +321,8 @@ Enterprise-only and is tracked separately in the direct advisory ledger.
 
 ## Dependency CVEs: severity-ordered report
 
-This report covers the 45 dependency CVEs supplied for Hazelcast 5.4.0. Current
+This report covers the 45 dependency CVEs supplied for Hazelcast 5.4.0, plus
+the related CVE-2026-34481 found during Log4j remediation. Current
 versions below are those declared in the Hazelcast 5.4.0 source POMs. The
 Tomcat, database-driver, and AssertJ versions shown here are test-scoped.
 Log4j is provided/optional, while JLine is provided/optional and noted in the
@@ -375,6 +377,7 @@ list the fixed 12.6.5 line for CVE-2025-59250.
 | --- | --- | --- | --- |
 | Medium (CVSS 5.5) | [CVE-2026-77420](https://nvd.nist.gov/vuln/detail/CVE-2026-77420) | JLine (`3.25.1`, provided/optional) | `3.30.15` or later on 3.x |
 | Medium (CVSS 4.0 6.3) | [CVE-2026-49844](https://nvd.nist.gov/vuln/detail/CVE-2026-49844) | Log4j API (`2.23.0`, provided/optional) | Log4j `2.26.1` or later |
+| Medium (CVSS 4.0 6.3) | [CVE-2026-34481](https://nvd.nist.gov/vuln/detail/CVE-2026-34481) | Log4j JSON Template Layout (`2.23.0`, distribution) | Log4j `2.26.1` or later |
 | Medium (Tomcat: Moderate) | [CVE-2026-43515](https://nvd.nist.gov/vuln/detail/CVE-2026-43515) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
 | Medium (Tomcat: Moderate) | [CVE-2026-43512](https://nvd.nist.gov/vuln/detail/CVE-2026-43512) | Apache Tomcat (`10.1.19`, test scope) | Tomcat `10.1.61` |
 | Medium (CVSS 4.0 6.9) | [CVE-2026-34480](https://nvd.nist.gov/vuln/detail/CVE-2026-34480) | Log4j Core (`2.23.0`, provided/optional) | Log4j `2.26.1` or later |
